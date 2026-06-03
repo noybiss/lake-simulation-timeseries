@@ -32,18 +32,26 @@ def engineer_features(
     df = df.copy()
 
     # ------------------------------------------------------------------ #
-    # 1. Cyclical time features from DatetimeIndex (for Seasons)
+    # 1. Cyclical time features from DatetimeIndex (for Seasons/Time-of-day)
     # ------------------------------------------------------------------ #
+    # Simple integer representations of time (e.g. Month 12 and Month 1)
+    # appear far apart to machine learning models. By projecting them onto a 
+    # unit circle using sine and cosine, we maintain the correct cyclical proximity:
+    # December (12) and January (1) become close numerical neighbors.
     idx = df.index
     month = idx.month.astype(float)
     hour = idx.hour.astype(float)
 
+    # Month cycles (12-month period)
     df["month_sin"] = np.sin(2 * np.pi * month / 12)
     df["month_cos"] = np.cos(2 * np.pi * month / 12)
+    
+    # Hour cycles (24-hour daily period)
     df["hour_sin"] = np.sin(2 * np.pi * hour / 24)
     df["hour_cos"] = np.cos(2 * np.pi * hour / 24)
 
-    # Also add day-of-year cyclical for added seasonality capture
+    # Day-of-year cycle (365-day seasonal period)
+    # Essential for high-resolution seasonal effects like water temperature changes
     doy = idx.dayofyear.astype(float)
     df["doy_sin"] = np.sin(2 * np.pi * doy / 365)
     df["doy_cos"] = np.cos(2 * np.pi * doy / 365)
@@ -63,6 +71,8 @@ def engineer_features(
     # ------------------------------------------------------------------ #
     # 2. Rolling / lag features for all numeric feature columns
     # ------------------------------------------------------------------ #
+    # Rolling averages provide the model with historical context and smooth
+    # out short-term fluctuations. We use 3-timestep and 7-timestep rolling means.
     feature_candidates = [
         c for c in df.columns
         if c != target_col
@@ -72,6 +82,7 @@ def engineer_features(
 
     new_cols: dict[str, pd.Series] = {}
     for col in feature_candidates:
+        # min_periods=1 ensures we get values even at the beginning of the series
         new_cols[f"{col}_rolling_3"] = (
             df[col].rolling(3, min_periods=1).mean()
         )
@@ -79,11 +90,14 @@ def engineer_features(
             df[col].rolling(7, min_periods=1).mean()
         )
 
+    # Combine newly engineered rolling features with the original DataFrame
     df = pd.concat([df, pd.DataFrame(new_cols, index=df.index)], axis=1)
 
     # ------------------------------------------------------------------ #
     # 3. Fill any remaining NaNs from rolling windows — ffill then bfill
     # ------------------------------------------------------------------ #
+    # forward-fill then backward-fill handles boundary values where rolling
+    # windows might generate NaNs.
     df = df.ffill().bfill()
 
     # ------------------------------------------------------------------ #
