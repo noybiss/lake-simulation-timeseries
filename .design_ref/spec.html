@@ -1,0 +1,55 @@
+### 📋 App Specification: Lake Environment Scenario Predictor
+
+**Project Overview**
+Build a web-based "What-If" simulation application for environmental data. The user will upload historical tabular data of a lake's conditions (e.g., sun, wind, heat pump usage, ice thickness) and a "Scenario" dataset. The goal is counterfactual simulation: the user will change specific controllable variables (like heat pumps) in the scenario file while leaving uncontrollable variables (like weather) unchanged, to predict the exact impact on a missing target variable.
+
+**Target Tech Stack**
+ * **Language:** Python
+ * **Framework:** Streamlit (for UI)
+ * **Data Processing:** Pandas, NumPy
+ * **Machine Learning:** XGBoost (Crucial for multivariate tabular regression and counterfactual scenario testing)
+ * **Model Explainability:** SHAP (维持 library)
+ * **Visualization:** Plotly
+
+**Core Features & Logic Requirements**
+
+**1. Data Ingestion & Strict Time Parsing**
+ * **File Uploads:** Two file upload widgets accepting .csv or .xlsx files ("Historical Data" and "Scenario Data").
+ * **Orientation Check:** Automatically check if data is row-based (Time is row 0) or column-based (Time is column 0). Transpose to columns if necessary.
+ * **Time Column Handling (CRITICAL):**
+   * Locate the column representing time (usually named "Time", "Date", or "Datetime").
+   * Force-parse this column into the ISO 8601 format (YYYY-MM-DD HH:MM:SS) using pandas.to_datetime.
+   * Set this datetime column as the DataFrame index. Sort the DataFrame by this index chronologically.
+
+**2. Dynamic Target Detection**
+ * Scan the uploaded "Scenario Data".
+ * Find the single column that is completely empty (contains only NaNs or Nulls).
+ * Set this empty column as the **Target Variable** (y).
+ * Set all other columns as **Feature Variables** (X).
+
+**3. Advanced Feature Engineering (Environmental "Memory" & Seasons)**
+ * Apply the following transformations to the X variables for *both* the Historical and Scenario datasets:
+   * **Cyclical Time Features:** Extract the "Month" (1-12) and "Hour" (0-23) from the Datetime index. Apply Sine and Cosine transformations to these numbers (e.g., sin(2 * pi * month / 12)) and add them as new columns. This forces the model to understand that December smoothly transitions into January.
+   * **Lag & Rolling Features:** Lakes have thermal memory. For all continuous numeric variables (like temperature, wind, or sun), automatically generate rolling averages (e.g., a 3-period and 7-period rolling mean).
+
+**4. Model Training & Scenario Prediction**
+ * **Training:** Isolate the historical X (with engineered features) and historical y. Train an XGBoostRegressor model.
+ * **Prediction (The "What-If"):** Pass the Scenario's X variables (which contain the user's manual adjustments) through the trained model to predict the missing Target Variable.
+ * Fill the empty column in the Scenario Data with these new predictions.
+
+**5. Visualization & UI**
+ * **Main Graph (Time-Series Comparison):** Render an interactive Plotly line chart.
+   * Plot 1 (Solid Line): Historical actual data for the Target Variable.
+   * Plot 2 (Dashed Line, contrasting color): Predicted scenario data for the Target Variable.
+   * X-axis = Datetime, Y-axis = Target Variable Value. Enable native Plotly toolbar for zooming, panning, and image downloading.
+ * **Secondary Graph (SHAP Feature Impact):** * Calculate SHAP values for the trained XGBoost model.
+   * Render a Plotly horizontal bar chart or SHAP summary plot below the main graph.
+   * This graph must show the user *which* variables had the greatest positive or negative impact on pushing the target variable up or down (e.g., showing how much the Heat Pump variable actually changed the prediction).
+
+**6. Data Export**
+ * Provide a highly visible "Download Scenario Predictions" button to download the completed Scenario Dataset (including the newly filled predictions) as a CSV file.
+
+**Error Handling**
+ * Show an error if the column names in the Scenario dataset don't perfectly match the Historical dataset.
+ * Show an error/warning if the datetime parsing fails, prompting the user to ensure their data uses a standard date format.
+ * Handle missing data (NaNs) in the historical dataset by utilizing XGBoost's native ability to handle missing values, or apply a forward-fill (ffill) interpolation before training.
