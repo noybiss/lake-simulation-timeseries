@@ -1,1 +1,1 @@
-# Lake Simulation TimeSeries v.2 — modules package
+# Lake Simulation TimeSeries v1.0 — modules package

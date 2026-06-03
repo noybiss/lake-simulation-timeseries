@@ -2,7 +2,7 @@
 
 **Autor:** OA
 **Datum:** 2024
-**System:** Environmental Simulation System (Lake Simulation TimeSeries v.2)
+**System:** Environmental Simulation System (Lake Simulation TimeSeries v1.0)
 
 ---
 

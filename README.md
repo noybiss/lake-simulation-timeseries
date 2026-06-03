@@ -1,43 +1,129 @@
-# Lake Simulation TimeSeries v.2 (OmniSim AI)
+# 🌊 OmniSim AI — Lake Simulation TimeSeries v1.0
 
-**Made and Designed by OA.**
+[![Python Version](https://img.shields.io/badge/Python-3.9+-blue.svg?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![Streamlit App](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B.svg?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![XGBoost Regressor](https://img.shields.io/badge/XGBoost-2.0+-green.svg?style=flat&logo=xgboost)](https://xgboost.readthedocs.io/)
+[![SHAP Explainability](https://img.shields.io/badge/SHAP-Explainable_AI-orange.svg?style=flat)](https://shap.readthedocs.io/)
+[![Developer](https://img.shields.io/badge/Made%20by-OA-lightgrey.svg?style=flat)](https://github.com/noybiss)
 
-OmniSim AI is an Environmental Simulation System built with Python, Streamlit, and XGBoost. It provides a universal time-series simulation engine specifically engineered for environmental scientists and researchers requiring high-density, precise information.
+> **OmniSim AI** is a state-of-the-art Environmental Simulation Engine. Specifically engineered for environmental scientists, limnologists, and researchers, it provides a universal time-series simulation engine to predict scenarios with high density and academic-grade precision.
 
-## Key Features
+---
 
-- **Automated ML Pipeline**: Upload an Excel file with historical data and scenario definitions. The engine automatically identifies targets, aligns time-series data, and engineers features.
-- **Robust Data Cleaning**: Intelligently detects and offers cleaning options for missing placeholders (like -9999), statistical outliers, and extreme value ranges.
-- **High-Performance Modeling**: Powered by XGBoost, ensuring rapid convergence and highly accurate predictions for complex environmental data.
-- **SHAP Explainability**: Demystifies AI decisions by providing detailed SHAP value breakdowns, showing exactly which historical factors drove the predictions.
-- **Scientific Dark Mode**: A custom, high-contrast "Dark Mode" UI designed with Inter and Space Grotesk typography to reduce eye strain during prolonged analysis.
-- **Detailed Logging**: Automatically saves simulation metrics (R², RMSE), configurations, and SHAP insights to structured JSON log files for future AI analysis.
+## 🚀 Key Features
 
-## Project Structure
+*   **⚡ Automated Machine Learning Pipeline**: Just upload your raw Excel file! The engine automatically parses historical records, aligns indices, runs target detection, and constructs features.
+*   **🔍 Advanced Data Quality Auditing**: Scans data on-the-fly to discover missing placeholder values (e.g., `-999`, `-9999`) and statistical outliers using robust **Interquartile Range (IQR)** filtering.
+*   **🧠 High-Performance Modeling**: Powered by **XGBoost** with automated **Time-Series Cross-Validation (TimeSeriesSplit)** hyperparameter optimization to prevent training leakages.
+*   **🔮 SHAP Explainability (XAI)**: Demystifies the machine learning "black box" by calculating exact game-theory-based SHAP values, identifying which parameters drove the simulation outcomes.
+*   **🌙 Scientific Dark Mode UI**: A gorgeous, custom dark-themed UI styled with modern fonts (*Inter* and *Space Grotesk*) to reduce eye strain during prolonged analytical work.
+*   **📁 Structured Run Logging**: Automatically serializes accuracy metrics ($R^2$, RMSE), model parameters, and top SHAP drivers into JSON files for future AI analysis.
 
-- `app.py`: The main Streamlit application and UI layer.
-- `modules/`: Core backend logic.
-  - `data_loader.py`: Excel parsing, time index normalization, and rigorous data quality checking.
-  - `feature_engineering.py`: Automated generation of lag and rolling window features.
-  - `model.py`: XGBoost training and prediction wrapper.
-  - `explainer.py`: SHAP value computation.
-  - `visualizer.py`: Custom, dark-themed Plotly chart generation.
-  - `logger.py`: JSON-based simulation result logging.
+---
 
-## Installation and Usage
+## 🛠️ How It Works (Step-by-Step Workflow)
 
-1. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```mermaid
+graph TD
+    A[📂 Upload Excel File] --> B[🔍 Data Quality Check]
+    B --> C{🛠️ Clean Data?}
+    C -- Yes --> D[🧹 Mask Placeholders & Outliers]
+    C -- No --> E[🧬 Raw Feature Engineering]
+    D --> E
+    E --> F[⏱️ Cyclical & Rolling Lag generation]
+    F --> G[🚀 CV Hyperparameter Search]
+    G --> H[🏆 Final Model Training]
+    H --> I[🔮 Scenario Predictions & SHAP Analysis]
+    I --> J[💾 JSON Logging & CSV Download]
+```
 
-2. Start the Streamlit application:
-   ```bash
-   streamlit run app.py
-   ```
-   *(Alternatively, you can run the included `run.command` script on macOS/Linux).*
+1.  **Upload File 📂**: Drop your `.xls` or `.xlsx` workbook. The system reads **Sheet 1** as history and **Sheets 2+** as scenario conditions.
+2.  **Audit Data 🔍**: Review detected missing placeholders and outliers. Choose to clean specific columns or proceed with raw values.
+3.  **Optimize 🚀**: Watch the model tune itself! The app displays a live "racing line chart" showing cross-validated $R^2$ improvement over search iterations.
+4.  **Analyze 📊**: Explore interactive Plotly projections comparing history with predictions, backed by horizontal SHAP feature impact rankings.
+5.  **Export ⬇️**: Download prediction outcomes formatted as standardized CSVs for German locales (`;` delimiter, `,` decimals).
 
-3. **Data Format**: 
-   Upload a standard `.xls` or `.xlsx` file:
-   - **Sheet 1 (Historical)**: Must contain your historical training data with a time-based index.
-   - **Sheet 2+ (Scenarios)**: Must contain scenario projections. Exactly **one** column should be left empty; the AI will automatically target and predict this column.
+---
+
+## ⚙️ Under The Hood (ML Pipeline Details)
+
+### 1. Cyclical Time Representations ⏰
+Standard integers represent months (1–12) or hours (0–23) poorly, making December (12) and January (1) seem far apart. OmniSim AI projects dates onto a unit circle:
+$$\text{month\_sin} = \sin\left(\frac{2\pi \cdot \text{month}}{12}\right), \quad \text{month\_cos} = \cos\left(\frac{2\pi \cdot \text{month}}{12}\right)$$
+
+### 2. Temporal Smoothing & Lags 📉
+The system automatically calculates 3-day and 7-day rolling statistics of all predictors, feeding essential temporal trends into the regression trees.
+
+### 3. Hyperparameter Tuning 🎛️
+During training, a Time-Series Split cross-validation optimizes the learning rate, maximum tree depth, and estimator size to ensure high generalization scores.
+
+---
+
+## 📂 Project Directory Structure
+
+```text
+├── app.py                     # 🌐 Main Streamlit Application & UI Layer
+├── run.command                # ⚡ One-click macOS/Linux Shell Launcher
+├── requirements.txt           # 📦 Python Package Dependencies
+├── .gitignore                 # 🚫 Git Exclude Patterns (filters large sheets)
+├── modules/                   # 🧠 Core Backend Architecture
+│   ├── __init__.py            # 📦 Module Package Setup
+│   ├── data_loader.py         # 🗄️ Excel Ingestion & IQR Outlier Checks
+│   ├── feature_engineering.py  # 🧬 Sine/Cosine Cyclicals & Rolling Lags
+│   ├── model.py               # 🌲 XGBoost Trainer Wrapper
+│   ├── explainer.py           # 🔮 SHAP TreeExplainer Logic
+│   ├── visualizer.py          # 🎨 Plotly Custom Dark-Theme Templates
+│   └── logger.py              # 📝 Serialized JSON Run Logging
+└── docs/                      # 📖 Deep Academic Documentation
+    ├── Design.md              # 📐 UI/UX Design System Layout
+    ├── Specification.md       # 📋 Detailed Project Specifications
+    ├── documentation_de.md    # 🇩🇪 Comprehensive German Academic Docs
+    ├── explanation_de.md      # 🇩🇪 Quick German User Explanation
+    └── explanation_fa.md      # 🇮🇷 Quick Persian User Explanation
+```
+
+---
+
+## 💻 Installation & Quick Start
+
+### Prerequisites
+Make sure you have **Python 3.9+** installed. If you are using macOS, it is recommended to install `libomp` (required by XGBoost for multi-threading):
+```bash
+brew install libomp
+```
+
+### Setup Steps
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/noybiss/lake-simulation-timeseries.git
+    cd lake-simulation-timeseries
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3.  **Run the Streamlit Dashboard**:
+    ```bash
+    streamlit run app.py
+    ```
+    *On macOS, you can also double-click `run.command` directly from the Finder to launch.*
+
+---
+
+## 📊 File Formatting Guidelines
+
+To get accurate simulations, structure your Excel workbook as follows:
+
+*   **Sheet 1 (Historical data)**:
+    *   Must contain a chronological index column named `Time`, `Date`, `Datetime`, `Timestamp`, `Datum`, or `Zeit`.
+    *   All other columns must contain numeric values (e.g., `temperature`, `oxygen`, `ph`, `precipitation`).
+*   **Sheets 2+ (Scenarios)**:
+    *   Must have the **exact same columns** as Sheet 1.
+    *   Exactly **one** column must be left **entirely empty (NaN)**. This is the variable the AI will automatically identify as the target and predict for you.
+
+---
+
+**Developed & Maintained by [OA](https://github.com/noybiss)**  
+*Universal Environmental Intelligence Engine.*
