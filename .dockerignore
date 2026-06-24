@@ -1,0 +1,14 @@
+.git
+.gitignore
+.DS_Store
+.design_ref/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+logs/*.json
+docs/
+README.md
+run.command

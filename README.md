@@ -86,29 +86,57 @@ During training, a Time-Series Split cross-validation optimizes the learning rat
 
 ## 💻 Installation & Quick Start
 
-### Prerequisites
+### 1. Clone the repository
+```bash
+git clone https://github.com/noybiss/lake-simulation-timeseries.git
+cd lake-simulation-timeseries
+```
+
+### 🐳 Option A: Run with Docker (Recommended & Easiest)
+You can run OmniSim AI containerized without installing Python, compilers, or packages locally.
+
+#### Using Docker Compose
+1. **Build and launch the container**:
+   ```bash
+   docker compose up --build
+   ```
+2. **Access the application**:
+   Open your browser at [http://localhost:8501](http://localhost:8501) ⚡
+   *(Any logs created during runs will automatically sync to your local `./logs/` directory)*
+
+#### Using Standard Docker Commands
+1. **Build the image**:
+   ```bash
+   docker build -t omnisim-ai .
+   ```
+2. **Run the container**:
+   ```bash
+   docker run -d -p 8501:8501 -v "$(pwd)/logs:/app/logs" --name omnisim-instance omnisim-ai
+   ```
+3. **Access the application**:
+   Open your browser at [http://localhost:8501](http://localhost:8501) ⚡
+
+---
+
+### 🐍 Option B: Local Development Setup
+
+#### Prerequisites
 Make sure you have **Python 3.9+** installed. If you are using macOS, it is recommended to install `libomp` (required by XGBoost for multi-threading):
 ```bash
 brew install libomp
 ```
 
-### Setup Steps
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/noybiss/lake-simulation-timeseries.git
-    cd lake-simulation-timeseries
-    ```
+#### Setup Steps
+1. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-2.  **Install dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-3.  **Run the Streamlit Dashboard**:
-    ```bash
-    streamlit run app.py
-    ```
-    *On macOS, you can also double-click `run.command` directly from the Finder to launch.*
+2. **Run the Streamlit Dashboard**:
+   ```bash
+   streamlit run app.py --server.port 8502
+   ```
+   *On macOS, you can also double-click `run.command` directly from the Finder to launch.*
 
 ---
 

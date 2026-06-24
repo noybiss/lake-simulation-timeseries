@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  omnisim-ai:
+    build: .
+    container_name: omnisim-ai
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
