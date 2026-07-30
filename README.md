@@ -39,7 +39,7 @@ graph TD
 
 1.  **Upload File 📂**: Drop your `.xls` or `.xlsx` workbook. The system reads **Sheet 1** as history and **Sheets 2+** as scenario conditions.
 2.  **Audit Data 🔍**: Review detected missing placeholders and outliers. Choose to clean specific columns or proceed with raw values.
-3.  **Optimize 🚀**: Watch the model tune itself! The app displays a live "racing line chart" showing cross-validated $R^2$ improvement over search iterations.
+3.  **Optimize 🚀**: Watch the live model console evaluate candidate configurations with forward-only validation. Advanced mode can adjust search effort, validation rigor, tree complexity, and rolling context windows.
 4.  **Analyze 📊**: Explore interactive Plotly projections comparing history with predictions, backed by horizontal SHAP feature impact rankings.
 5.  **Export ⬇️**: Download prediction outcomes formatted as standardized CSVs for German locales (`;` delimiter, `,` decimals).
 
@@ -51,11 +51,25 @@ graph TD
 Standard integers represent months (1–12) or hours (0–23) poorly, making December (12) and January (1) seem far apart. OmniSim AI projects dates onto a unit circle:
 $$\text{month\_sin} = \sin\left(\frac{2\pi \cdot \text{month}}{12}\right), \quad \text{month\_cos} = \cos\left(\frac{2\pi \cdot \text{month}}{12}\right)$$
 
-### 2. Temporal Smoothing & Lags 📉
-The system automatically calculates 3-day and 7-day rolling statistics of all predictors, feeding essential temporal trends into the regression trees.
+### 2. Temporal Smoothing & Continuous Time 📉
+The default model calculates 3-observation and 7-observation rolling statistics
+for every predictor. Advanced mode can add 14- or 30-observation context when
+the measured system responds more slowly. Scenario dates share the historical
+time origin, so the long-term trend continues into the future instead of
+resetting when a scenario begins.
 
 ### 3. Hyperparameter Tuning 🎛️
 During training, a Time-Series Split cross-validation optimizes the learning rate, maximum tree depth, and estimator size to ensure high generalization scores.
+
+Advanced mode includes an explained **Expert model tuning** panel:
+
+- **Search effort** controls how many candidate models are evaluated.
+- **Time-series validation** controls the number of forward-only historical splits.
+- **Model complexity** controls the tree-depth search range.
+- **Rolling context windows** control how much short- and long-term predictor history is represented.
+
+Start with the recommended Balanced profile and change one setting at a time.
+Compare validation R² and RMSE rather than judging a model by training fit alone.
 
 ---
 
@@ -141,6 +155,19 @@ brew install libomp
 ---
 
 ## 📊 File Formatting Guidelines
+
+### Try the bundled demo
+
+To test the complete workflow immediately, upload
+`Example/OmniSim_Demo_2000_Rows.xlsx` in the app. It contains:
+
+- **Historical** — 2,000 daily lake observations across 10 variables.
+- **Scenario_Warming** — a 365-day future scenario with
+  `Dissolved_Oxygen_mg_L` intentionally blank for OmniSim to predict.
+
+No editing is required; select the file and the simulation starts automatically.
+
+---
 
 To get accurate simulations, structure your Excel workbook as follows:
 

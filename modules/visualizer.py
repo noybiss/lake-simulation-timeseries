@@ -1,9 +1,9 @@
 """
 visualizer.py — Plotly chart builders for the Scenario Simulator.
 
-Design System: "Environmental Simulation System" — DARK MODE.
-Colors: Primary (#98cded), Secondary (#76d4e7), Accent orange (#f97316).
-Font: Inter for UI, Space Grotesk for data labels.
+Design System: Roland Digital-inspired scientific workspace.
+Colors: warm paper (#f2efe7), ink (#171714), electric blue (#1648d8).
+Font: Manrope for UI, DM Mono for data labels.
 """
 from __future__ import annotations
 
@@ -14,17 +14,17 @@ import plotly.graph_objects as go
 # ---------------------------------------------------------------------------
 # Design tokens (matched to Stitch design system — DARK MODE)
 # ---------------------------------------------------------------------------
-_SURFACE = "#0f171a"
-_CARD_BG = "#1b2427"
-_BORDER = "#31393d"
-_GRID = "#262e32"
-_TEXT_PRIMARY = "#e0e3e5"
-_TEXT_SECONDARY = "#c0c7cd"
-_TEXT_MUTED = "#8a9297"
+_SURFACE = "#f2efe7"
+_CARD_BG = "#f7f4ed"
+_BORDER = "#c9c5ba"
+_GRID = "#ddd8cc"
+_TEXT_PRIMARY = "#171714"
+_TEXT_SECONDARY = "#4f4e48"
+_TEXT_MUTED = "#858278"
 
-_HIST_COLOR = "#98cded"      # Light Blue — historical actual
-_PRED_COLOR = "#f97316"      # Orange — scenario predicted
-_SECONDARY = "#76d4e7"       # Secondary Blue/Green — positive SHAP bars
+_HIST_COLOR = "#171714"      # Ink — historical actual
+_PRED_COLOR = "#1648d8"      # Electric blue — scenario predicted
+_SECONDARY = "#1648d8"       # Electric blue — feature impact bars
 _ERROR = "#ffb4ab"           # light red — negative SHAP bars
 
 
@@ -34,29 +34,29 @@ def _base_layout(**kwargs) -> dict:
         plot_bgcolor=_CARD_BG,
         font=dict(
             color=_TEXT_SECONDARY,
-            family="Inter, system-ui, sans-serif",
+            family="Manrope, Arial, sans-serif",
             size=14,
         ),
-        margin=dict(l=55, r=20, t=40, b=45),
+        margin=dict(l=58, r=24, t=46, b=46),
         xaxis=dict(
             gridcolor=_GRID,
             showline=True,
             linecolor=_BORDER,
             zeroline=False,
-            tickfont=dict(family="Space Grotesk, monospace", size=11, color=_TEXT_MUTED),
+            tickfont=dict(family="DM Mono, monospace", size=10, color=_TEXT_MUTED),
         ),
         yaxis=dict(
             gridcolor=_GRID,
             showline=True,
             linecolor=_BORDER,
             zeroline=False,
-            tickfont=dict(family="Space Grotesk, monospace", size=11, color=_TEXT_MUTED),
+            tickfont=dict(family="DM Mono, monospace", size=10, color=_TEXT_MUTED),
         ),
         legend=dict(
             bgcolor="rgba(255,255,255,0)",
             bordercolor=_BORDER,
-            borderwidth=1,
-            font=dict(family="Space Grotesk, monospace", size=12, color=_TEXT_SECONDARY),
+            borderwidth=0,
+            font=dict(family="DM Mono, monospace", size=10, color=_TEXT_SECONDARY),
             orientation="h",
             yanchor="bottom",
             y=1.02,
@@ -65,7 +65,7 @@ def _base_layout(**kwargs) -> dict:
         ),
         hoverlabel=dict(
             bgcolor=_CARD_BG,
-            font_family="Space Grotesk, monospace",
+            font_family="DM Mono, monospace",
             font_size=13,
             bordercolor=_BORDER,
         ),
@@ -91,7 +91,7 @@ def plot_comparison(
         y=hist_df[target_col],
         mode="lines",
         name="Historical Data",
-        line=dict(color=_HIST_COLOR, width=2.5),
+        line=dict(color=_HIST_COLOR, width=2.5, shape="spline", smoothing=0.35),
         hovertemplate="%{x|%Y-%m-%d}<br><b>%{y:.4f}</b><extra>Historical</extra>",
     ))
 
@@ -101,7 +101,7 @@ def plot_comparison(
         y=scenario_df[target_col],
         mode="lines",
         name="Scenario Projection",
-        line=dict(color=_PRED_COLOR, width=2.5, dash="dash"),
+        line=dict(color=_PRED_COLOR, width=2.8, dash="dash", shape="spline", smoothing=0.35),
         hovertemplate="%{x|%Y-%m-%d}<br><b>%{y:.4f}</b><extra>Predicted</extra>",
     ))
 
@@ -117,6 +117,21 @@ def plot_comparison(
 # Chart 2 — SHAP feature importance
 # ---------------------------------------------------------------------------
 
+def _readable_feature_name(name: str) -> str:
+    """Turn engineered feature keys into compact chart labels."""
+    label = str(name)
+    label = label.replace("_rolling_", " · rolling ")
+    label = label.replace("_lag_", " · lag ")
+    label = label.replace("doy_cos", "Day of year · cosine")
+    label = label.replace("doy_sin", "Day of year · sine")
+    label = label.replace("dow_cos", "Day of week · cosine")
+    label = label.replace("dow_sin", "Day of week · sine")
+    label = label.replace("_", " ")
+    label = label.replace(" ug L", " µg/L").replace(" mg L", " mg/L")
+    label = label.replace(" Temperature C", " temperature °C")
+    return label
+
+
 def plot_shap_bar(
     mean_abs_shap: np.ndarray,
     feature_names: list[str],
@@ -124,7 +139,7 @@ def plot_shap_bar(
     """Horizontal bar chart of mean absolute SHAP values per feature."""
     # Sort ascending for horizontal bars (top = most important)
     order = np.argsort(mean_abs_shap)
-    sorted_names = [feature_names[i] for i in order]
+    sorted_names = [_readable_feature_name(feature_names[i]) for i in order]
     sorted_vals = mean_abs_shap[order]
 
     # Only show top 10 features
@@ -139,7 +154,7 @@ def plot_shap_bar(
         orientation="h",
         marker=dict(
             color=_SECONDARY,
-            opacity=0.8,
+            opacity=0.9,
             line=dict(width=0),
         ),
         hovertemplate="<b>%{y}</b><br>Mean |SHAP|: %{x:.5f}<extra></extra>",
@@ -153,7 +168,7 @@ def plot_shap_bar(
     )
     fig.update_layout(**layout)
     fig.update_yaxes(
-        tickfont=dict(family="Space Grotesk, monospace", size=10, color=_TEXT_SECONDARY),
+        tickfont=dict(family="DM Mono, monospace", size=10, color=_TEXT_SECONDARY),
     )
     fig.update_xaxes(
         title_text="Mean |SHAP Value|",
