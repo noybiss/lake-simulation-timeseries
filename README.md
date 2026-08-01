@@ -183,6 +183,7 @@ To get accurate simulations, structure your Excel workbook as follows:
 ## Author
 
 **Developed and maintained by [Omid Abduli](https://github.com/omidabduli)**
+
 [Roland Digital](https://roland-digital.de/) · Germany
 
 *Explainable environmental time-series simulation for research and scenario analysis.*
