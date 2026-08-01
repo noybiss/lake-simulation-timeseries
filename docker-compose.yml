@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
   lake-time-series-forecasting:
     build: .
     container_name: lake-time-series-forecasting
+    init: true
     ports:
       - "8501:8501"
     volumes:

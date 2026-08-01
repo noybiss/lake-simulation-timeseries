@@ -1685,7 +1685,7 @@ with st.sidebar:
     )
     st.markdown(
         """
-        <p class="sidebar-signoff">XGBoost · SHAP · Time-series CV</p>
+        <p class="sidebar-signoff">v2.0.0 · XGBoost · SHAP · Time-series CV</p>
         """,
         unsafe_allow_html=True,
     )
