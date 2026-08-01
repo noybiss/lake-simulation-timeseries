@@ -1,8 +1,8 @@
-# OmniSim AI: Sehr einfache Erklärung (Wie für ein Kind erklärt)
+# Lake Time-Series Forecasting: Sehr einfache Erklärung
 
 **Autor:** OA
 
-Hallo! Dieser Text ist dafür da, um genau zu verstehen, was dieses Programm (*OmniSim AI*) eigentlich macht. Wenn du die mathematischen Formeln im anderen Dokument zu kompliziert fandest, bist du hier genau richtig. Wir erklären alles so, als würden wir es einem kleinen Kind erklären.
+Hallo! Dieser Text erklärt, was *Lake Time-Series Forecasting* macht. Wenn die mathematischen Formeln in der ausführlichen Dokumentation zu kompliziert sind, findest du hier eine leicht verständliche Einführung.
 
 ---
 

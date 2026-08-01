@@ -1,4 +1,4 @@
-# OmniSim AI — Lake Simulation Time-Series
+# Lake Time-Series Forecasting
 
 [![Python Version](https://img.shields.io/badge/Python-3.9+-blue.svg?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit App](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B.svg?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io/)
@@ -6,7 +6,7 @@
 [![SHAP Explainability](https://img.shields.io/badge/SHAP-Explainable_AI-orange.svg?style=flat)](https://shap.readthedocs.io/)
 [![Developer](https://img.shields.io/badge/Developed%20by-Omid%20Abduli-1648D8.svg?style=flat)](https://github.com/omidabduli)
 
-> **OmniSim AI** is an explainable environmental time-series scenario simulation application for scientists, limnologists, analysts, and researchers. It combines structured Excel workflows, forward-only model validation, XGBoost forecasting, and SHAP explanations in a clear, reproducible interface.
+> **Lake Time-Series Forecasting** is an explainable environmental forecasting and scenario-analysis application for scientists, limnologists, analysts, and researchers. It combines structured Excel workflows, forward-only model validation, XGBoost forecasting, and SHAP explanations in a clear, reproducible interface.
 
 ---
 
@@ -48,7 +48,7 @@ graph TD
 ## ⚙️ Under The Hood (ML Pipeline Details)
 
 ### 1. Cyclical Time Representations ⏰
-Standard integers represent months (1–12) or hours (0–23) poorly, making December (12) and January (1) seem far apart. OmniSim AI projects dates onto a unit circle:
+Standard integers represent months (1–12) or hours (0–23) poorly, making December (12) and January (1) seem far apart. Lake Time-Series Forecasting projects dates onto a unit circle:
 $$\text{month\_sin} = \sin\left(\frac{2\pi \cdot \text{month}}{12}\right), \quad \text{month\_cos} = \cos\left(\frac{2\pi \cdot \text{month}}{12}\right)$$
 
 ### 2. Temporal Smoothing & Continuous Time 📉
@@ -107,7 +107,7 @@ cd lake-simulation-timeseries
 ```
 
 ### 🐳 Option A: Run with Docker (Recommended & Easiest)
-You can run OmniSim AI containerized without installing Python, compilers, or packages locally.
+You can run Lake Time-Series Forecasting in a container without installing Python, compilers, or packages locally.
 
 #### Using Docker Compose
 1. **Build and launch the container**:
@@ -121,11 +121,11 @@ You can run OmniSim AI containerized without installing Python, compilers, or pa
 #### Using Standard Docker Commands
 1. **Build the image**:
    ```bash
-   docker build -t omnisim-ai .
+   docker build -t lake-time-series-forecasting .
    ```
 2. **Run the container**:
    ```bash
-   docker run -d -p 8501:8501 -v "$(pwd)/logs:/app/logs" --name omnisim-instance omnisim-ai
+   docker run -d -p 8501:8501 -v "$(pwd)/logs:/app/logs" --name lake-forecasting lake-time-series-forecasting
    ```
 3. **Access the application**:
    Open your browser at [http://localhost:8501](http://localhost:8501) ⚡
@@ -159,11 +159,11 @@ brew install libomp
 ### Try the bundled demo
 
 To test the complete workflow immediately, upload
-`Example/OmniSim_Demo_2000_Rows.xlsx` in the app. It contains:
+`Example/Lake_Time_Series_Forecasting_Demo_2000_Rows.xlsx` in the app. It contains:
 
 - **Historical** — 2,000 daily lake observations across 10 variables.
 - **Scenario_Warming** — a 365-day future scenario with
-  `Dissolved_Oxygen_mg_L` intentionally blank for OmniSim to predict.
+  `Dissolved_Oxygen_mg_L` intentionally blank for the application to predict.
 
 No editing is required; select the file and the simulation starts automatically.
 

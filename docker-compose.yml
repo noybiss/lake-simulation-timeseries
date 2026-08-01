@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  omnisim-ai:
+  lake-time-series-forecasting:
     build: .
-    container_name: omnisim-ai
+    container_name: lake-time-series-forecasting
     ports:
       - "8501:8501"
     volumes:

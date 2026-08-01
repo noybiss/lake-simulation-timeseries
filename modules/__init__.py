@@ -1,1 +1,1 @@
-# OmniSim AI — Lake Simulation Time-Series modules package
+# Lake Time-Series Forecasting modules package
