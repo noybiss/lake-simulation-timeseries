@@ -24,9 +24,10 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy the modules directory and main app file
+# Copy the application, modules, and Streamlit theme configuration
 COPY modules/ ./modules/
 COPY app.py .
+COPY .streamlit/ ./.streamlit/
 
 # Create logs folder for structured runtime logging
 RUN mkdir -p logs
@@ -38,6 +39,10 @@ EXPOSE 8501
 ENV STREAMLIT_SERVER_PORT=8501
 ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 ENV STREAMLIT_SERVER_HEADLESS=true
+
+# Let Docker and orchestration platforms verify that the app is responsive
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
 # Command to run Streamlit
 CMD ["streamlit", "run", "app.py"]

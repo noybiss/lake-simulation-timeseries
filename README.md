@@ -4,9 +4,13 @@
 [![Streamlit App](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B.svg?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![XGBoost Regressor](https://img.shields.io/badge/XGBoost-2.0+-green.svg?style=flat&logo=xgboost)](https://xgboost.readthedocs.io/)
 [![SHAP Explainability](https://img.shields.io/badge/SHAP-Explainable_AI-orange.svg?style=flat)](https://shap.readthedocs.io/)
+[![Release](https://img.shields.io/github/v/release/omidabduli/lake-simulation-timeseries?style=flat&label=release)](https://github.com/omidabduli/lake-simulation-timeseries/releases/latest)
 [![Developer](https://img.shields.io/badge/Developed%20by-Omid%20Abduli-1648D8.svg?style=flat)](https://github.com/omidabduli)
 
 > **Lake Time-Series Forecasting** is an explainable environmental forecasting and scenario-analysis application for scientists, limnologists, analysts, and researchers. It combines structured Excel workflows, forward-only model validation, XGBoost forecasting, and SHAP explanations in a clear, reproducible interface.
+
+See the [v2.0.0 release notes](https://github.com/omidabduli/lake-simulation-timeseries/releases/tag/v2.0.0)
+or review the complete [changelog](CHANGELOG.md).
 
 ---
 
@@ -112,11 +116,16 @@ You can run Lake Time-Series Forecasting in a container without installing Pytho
 #### Using Docker Compose
 1. **Build and launch the container**:
    ```bash
-   docker compose up --build
+   docker compose up --build -d
    ```
 2. **Access the application**:
    Open your browser at [http://localhost:8501](http://localhost:8501) ⚡
    *(Any logs created during runs will automatically sync to your local `./logs/` directory)*
+3. **Check container health or stop the application**:
+   ```bash
+   docker compose ps
+   docker compose down
+   ```
 
 #### Using Standard Docker Commands
 1. **Build the image**:
@@ -129,6 +138,10 @@ You can run Lake Time-Series Forecasting in a container without installing Pytho
    ```
 3. **Access the application**:
    Open your browser at [http://localhost:8501](http://localhost:8501) ⚡
+
+The image includes the production Streamlit theme and a built-in health check at
+`/_stcore/health`, making it suitable for Docker Compose and container hosting
+platforms that support standard Docker images.
 
 ---
 
