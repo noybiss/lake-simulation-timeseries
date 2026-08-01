@@ -8,3 +8,4 @@ env/
 .env
 *.xls
 *.xlsx
+!Example/OmniSim_Demo_2000_Rows.xlsx

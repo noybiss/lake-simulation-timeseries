@@ -1,6 +1,6 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
-# run.command — One-click launcher for EcoPredict AI · Lake Simulation
+# run.command — One-click launcher for OmniSim AI · Lake Simulation Time-Series
 # Double-click this file in Finder to start the app.
 # ─────────────────────────────────────────────────────────────────────────────
 

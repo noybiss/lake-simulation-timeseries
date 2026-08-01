@@ -43,6 +43,9 @@ def save_simulation_log(scen_name: str, result: dict) -> None:
             "type": type(result.get("model")).__name__ if result.get("model") else "Unknown",
             "n_features_used": int(result.get("n_features", 0)),
         },
+        "feature_engineering": {
+            "seasonal_features": bool(result.get("seasonal", True)),
+        },
         "shap_insights": {}
     }
     
