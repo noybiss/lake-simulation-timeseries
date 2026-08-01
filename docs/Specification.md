@@ -1,4 +1,4 @@
-# App Specification: OmniSim AI (Universal Time-Series Scenario Engine)
+# App Specification: Lake Time-Series Forecasting
 
 ## Project Overview
 

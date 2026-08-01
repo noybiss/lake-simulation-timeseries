@@ -1,14 +1,14 @@
-# OmniSim AI: Eine umfassende akademische Dokumentation zur Zeitreihensimulation von Umweltsystemen
+# Lake Time-Series Forecasting: Akademische Dokumentation zur Vorhersage von Umweltzeitreihen
 
-**Autor:** OA
+**Autor:** Omid Abduli
 **Datum:** 2024
-**System:** OmniSim AI — Lake Simulation Time-Series
+**System:** Lake Time-Series Forecasting
 
 ---
 
 ## 1. Zusammenfassung (Abstract)
 
-Diese Dokumentation beschreibt die theoretischen, algorithmischen und softwaretechnischen Grundlagen des *OmniSim AI* Systems. Das System wurde primär für Umweltwissenschaftler und Forscher entwickelt, um komplexe, nicht-lineare Zeitreihen-Szenarien vorherzusagen, insbesondere im Bereich der limnologischen (Seenforschung) und ökologischen Simulation. 
+Diese Dokumentation beschreibt die theoretischen, algorithmischen und softwaretechnischen Grundlagen von *Lake Time-Series Forecasting*. Das System wurde primär für Umweltwissenschaftler und Forscher entwickelt, um komplexe, nicht-lineare Zeitreihen-Szenarien vorherzusagen, insbesondere im Bereich der limnologischen (Seenforschung) und ökologischen Simulation.
 
 Der Kern der Applikation ist eine automatisierte Machine-Learning-Pipeline (AutoML), die Datenbereinigung, Feature Engineering, Hyperparameter-Optimierung mittels Extreme Gradient Boosting (XGBoost) und Modell-Erklärbarkeit durch SHAP (SHapley Additive exPlanations) nahtlos integriert. Die Architektur ist so konzipiert, dass sie ohne tiefergehende Programmierkenntnisse des Endnutzers operiert, während sie gleichzeitig höchste akademische Strenge in den zugrunde liegenden Berechnungen beibehält.
 
@@ -16,7 +16,7 @@ Der Kern der Applikation ist eine automatisierte Machine-Learning-Pipeline (Auto
 
 ## 2. Einleitung
 
-Die Modellierung von Umweltsystemen ist aufgrund der hohen Dimensionalität, Autokorrelation und Nicht-Stationarität der beteiligten Parameter (z.B. Wassertemperatur, gelöster Sauerstoff, pH-Wert) eine komplexe Herausforderung. Traditionelle deterministische Modelle (wie hydrodynamische Seenmodelle) erfordern oft detaillierte physikalische Parametrisierungen. Im Gegensatz dazu nutzt *OmniSim AI* einen datengetriebenen Ansatz (Data-Driven Modeling), bei dem Algorithmen die zugrunde liegenden Dynamiken direkt aus historischen Beobachtungen lernen.
+Die Modellierung von Umweltsystemen ist aufgrund der hohen Dimensionalität, Autokorrelation und Nicht-Stationarität der beteiligten Parameter (z.B. Wassertemperatur, gelöster Sauerstoff, pH-Wert) eine komplexe Herausforderung. Traditionelle deterministische Modelle (wie hydrodynamische Seenmodelle) erfordern oft detaillierte physikalische Parametrisierungen. Im Gegensatz dazu nutzt *Lake Time-Series Forecasting* einen datengetriebenen Ansatz (Data-Driven Modeling), bei dem Algorithmen die zugrunde liegenden Dynamiken direkt aus historischen Beobachtungen lernen.
 
 Diese Dokumentation legt den Fokus auf die mathematischen Grundlagen und die algorithmische Implementierung der Pipeline.
 
@@ -121,7 +121,7 @@ Der RMSE ist dimensionsbehaftet und wird in denselben Einheiten wie die Zielvari
 
 ## 8. Erklärbare KI (Explainable AI): SHAP-Werte
 
-Moderne Ensemble-Methoden werden oft als "Black Boxes" bezeichnet. Um dies zu lösen, implementiert *OmniSim AI* den SHAP (SHapley Additive exPlanations) Ansatz, basierend auf der kooperativen Spieltheorie von Lloyd Shapley.
+Moderne Ensemble-Methoden werden oft als "Black Boxes" bezeichnet. Um dies zu lösen, implementiert *Lake Time-Series Forecasting* den SHAP-Ansatz (SHapley Additive exPlanations), basierend auf der kooperativen Spieltheorie von Lloyd Shapley.
 
 ### 8.1 Die Shapley-Formel
 Der Shapley-Wert ordnet jedem Feature (Spieler) einen Beitrag (Auszahlung) an der Vorhersage (Gewinn) zu. Für ein Feature $j$ und ein Modell $f$ wird der SHAP-Wert $\phi_j$ berechnet durch das Marginalprodukt von $j$ bezogen auf alle möglichen Feature-Teilmengen $S$ (die $j$ nicht enthalten):
@@ -159,6 +159,6 @@ Das Frontend verwendet ein Custom CSS injiziert in Streamlit.
 
 ## 10. Schlussfolgerung
 
-OmniSim AI überbrückt die Lücke zwischen hochentwickeltem maschinellem Lernen und Domänenexperten (Ökologen, Limnologen). Durch die Automatisierung des Feature Engineerings, dynamische Modelltuning-Routinen und die Entmystifizierung der Entscheidungsfindung mittels spieltheoretischer SHAP-Werte, bietet das System eine vollständige "End-to-End"-Pipeline für die prädiktive Umweltanalyse in Produktionsqualität.
+Lake Time-Series Forecasting überbrückt die Lücke zwischen hochentwickeltem maschinellem Lernen und Domänenexperten (Ökologen, Limnologen). Durch die Automatisierung des Feature Engineerings, dynamische Modelltuning-Routinen und die Erklärung der Entscheidungsfindung mittels spieltheoretischer SHAP-Werte bietet das System eine vollständige End-to-End-Pipeline für die prädiktive Umweltanalyse.
 
-**Made and Designed by OA.**
+**Entwickelt und gestaltet von Omid Abduli.**

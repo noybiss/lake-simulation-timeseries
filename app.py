@@ -39,7 +39,7 @@ from modules.logger import save_simulation_log
 # Page configuration
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="OmniSim AI · Universal Time-Series Simulation",
+    page_title="Lake Time-Series Forecasting",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="auto",
@@ -1638,8 +1638,8 @@ with st.sidebar:
         <div class="brand-lockup">
             <div class="brand-mark" aria-hidden="true"></div>
             <div class="brand-copy">
-                <h1>OmniSim AI</h1>
-                <p>Lake scenario engine</p>
+                <h1>Lake Time-Series Forecasting</h1>
+                <p>Explainable scenario engine</p>
             </div>
         </div>
         """,
@@ -1878,7 +1878,7 @@ def _run_scenario(
                 f"""
                 <div class="training-console">
                     <div class="training-console__top">
-                        <span>OmniSim model lab / {safe_scenario_name}</span>
+                        <span>Forecasting model lab / {safe_scenario_name}</span>
                         <b>Live optimization</b>
                     </div>
                     <div class="training-console__body">
@@ -1998,7 +1998,7 @@ if uploaded is None:
             <div class="hero-kicker">Environmental intelligence workspace</div>
             <h1>Turn lake history into <span>clear scenarios.</span></h1>
             <p>
-                Upload a structured Excel workbook and OmniSim will validate the data,
+                Upload a structured Excel workbook and the forecasting engine will validate the data,
                 train a time-aware model, project every scenario, and explain what drove the result.
             </p>
             <div class="hero-flow">
