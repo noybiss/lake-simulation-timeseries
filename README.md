@@ -1,12 +1,12 @@
-# 🌊 OmniSim AI — Lake Simulation TimeSeries v1.0
+# OmniSim AI — Lake Simulation Time-Series
 
 [![Python Version](https://img.shields.io/badge/Python-3.9+-blue.svg?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit App](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B.svg?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![XGBoost Regressor](https://img.shields.io/badge/XGBoost-2.0+-green.svg?style=flat&logo=xgboost)](https://xgboost.readthedocs.io/)
 [![SHAP Explainability](https://img.shields.io/badge/SHAP-Explainable_AI-orange.svg?style=flat)](https://shap.readthedocs.io/)
-[![Developer](https://img.shields.io/badge/Made%20by-OA-lightgrey.svg?style=flat)](https://github.com/noybiss)
+[![Developer](https://img.shields.io/badge/Developed%20by-Omid%20Abduli-1648D8.svg?style=flat)](https://github.com/omidabduli)
 
-> **OmniSim AI** is a state-of-the-art Environmental Simulation Engine. Specifically engineered for environmental scientists, limnologists, and researchers, it provides a universal time-series simulation engine to predict scenarios with high density and academic-grade precision.
+> **OmniSim AI** is an explainable environmental time-series scenario simulation application for scientists, limnologists, analysts, and researchers. It combines structured Excel workflows, forward-only model validation, XGBoost forecasting, and SHAP explanations in a clear, reproducible interface.
 
 ---
 
@@ -16,7 +16,7 @@
 *   **🔍 Advanced Data Quality Auditing**: Scans data on-the-fly to discover missing placeholder values (e.g., `-999`, `-9999`) and statistical outliers using robust **Interquartile Range (IQR)** filtering.
 *   **🧠 High-Performance Modeling**: Powered by **XGBoost** with automated **Time-Series Cross-Validation (TimeSeriesSplit)** hyperparameter optimization to prevent training leakages.
 *   **🔮 SHAP Explainability (XAI)**: Demystifies the machine learning "black box" by calculating exact game-theory-based SHAP values, identifying which parameters drove the simulation outcomes.
-*   **🌙 Scientific Dark Mode UI**: A gorgeous, custom dark-themed UI styled with modern fonts (*Inter* and *Space Grotesk*) to reduce eye strain during prolonged analytical work.
+*   **🎨 Professional Scientific Interface**: A responsive, high-contrast workspace inspired by the Roland Digital visual system, with accessible labels and clear training feedback.
 *   **📁 Structured Run Logging**: Automatically serializes accuracy metrics ($R^2$, RMSE), model parameters, and top SHAP drivers into JSON files for future AI analysis.
 
 ---
@@ -86,7 +86,7 @@ Compare validation R² and RMSE rather than judging a model by training fit alon
 │   ├── feature_engineering.py  # 🧬 Sine/Cosine Cyclicals & Rolling Lags
 │   ├── model.py               # 🌲 XGBoost Trainer Wrapper
 │   ├── explainer.py           # 🔮 SHAP TreeExplainer Logic
-│   ├── visualizer.py          # 🎨 Plotly Custom Dark-Theme Templates
+│   ├── visualizer.py          # 🎨 Plotly Scientific Visualization Templates
 │   └── logger.py              # 📝 Serialized JSON Run Logging
 └── docs/                      # 📖 Deep Academic Documentation
     ├── Design.md              # 📐 UI/UX Design System Layout
@@ -102,7 +102,7 @@ Compare validation R² and RMSE rather than judging a model by training fit alon
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/noybiss/lake-simulation-timeseries.git
+git clone https://github.com/omidabduli/lake-simulation-timeseries.git
 cd lake-simulation-timeseries
 ```
 
@@ -180,5 +180,9 @@ To get accurate simulations, structure your Excel workbook as follows:
 
 ---
 
-**Developed & Maintained by [OA](https://github.com/noybiss)**  
-*Universal Environmental Intelligence Engine.*
+## Author
+
+**Developed and maintained by [Omid Abduli](https://github.com/omidabduli)**
+[Roland Digital](https://roland-digital.de/) · Germany
+
+*Explainable environmental time-series simulation for research and scenario analysis.*

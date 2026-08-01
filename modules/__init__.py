@@ -1,1 +1,1 @@
-# Lake Simulation TimeSeries v1.0 — modules package
+# OmniSim AI — Lake Simulation Time-Series modules package
