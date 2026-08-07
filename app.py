@@ -7,6 +7,7 @@ Design system: Stitch "Environmental Simulation System" light theme.
 """
 from __future__ import annotations
 
+import os
 import io
 import html
 import time
@@ -17,8 +18,17 @@ import logging
 import numpy as np
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
+
+# Load demonstration dataset bytes for single-click user download
+_EXAMPLE_PATH = os.path.join(os.path.dirname(__file__), "Example", "Lake_Time_Series_Forecasting_Demo_2000_Rows.xlsx")
+try:
+    with open(_EXAMPLE_PATH, "rb") as _f:
+        EXAMPLE_FILE_BYTES = _f.read()
+except Exception:
+    EXAMPLE_FILE_BYTES = None
 
 from modules.data_loader import (
     clean_specific_columns,
@@ -34,13 +44,13 @@ from modules.feature_engineering import engineer_features
 from modules.model import train, predict
 from modules.visualizer import plot_comparison, plot_shap_bar
 from modules.logger import save_simulation_log
+from modules.docs_view import render_documentation
 
 # ---------------------------------------------------------------------------
 # Page configuration
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Lake Time-Series Forecasting",
-    page_icon="⚡",
+    page_title="Universal Time-Series Forecasting",
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -51,593 +61,359 @@ st.set_page_config(
 #   Advanced — full data-quality controls, live tuning chart, scorecards
 #   seasonal_mode — toggle cyclical month/hour/day-of-year feature engineering
 # ---------------------------------------------------------------------------
-st.session_state.setdefault("app_mode", "Basic")
+st.session_state["app_mode"] = "Advanced"
 st.session_state.setdefault("seasonal_mode", True)
 
-# Snapshot the current widget selections for branch logic below. Streamlit
-# applies widget values to session_state at the start of each run, so these
-# reflect the user's latest sidebar choices (updated on the next rerun).
-app_mode = st.session_state.app_mode
+app_mode = "Advanced"
 seasonal_mode = st.session_state.seasonal_mode
 
 # ---------------------------------------------------------------------------
-# Design System — "Environmental Simulation System" (Stitch)
-# Colors: Corporate / Scientific Minimalism · Light theme
-# Fonts: Inter + Space Grotesk
+# Design System — Claude Academy Design System Specification
+# Colors: Warm Neutral (#F9F8F3, #F2EFE7, #FFFFFF), Accent (#1648d8)
+# Fonts: Newsreader (Serif), Inter (Sans-Serif), Space Grotesk & JetBrains Mono (Mono)
 # ---------------------------------------------------------------------------
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
     :root {
-        color-scheme: dark;
-        --primary: #98cded;
-        --on-primary: #00354a;
-        --primary-container: #004d68;
-        --on-primary-container: #c3e8ff;
-        --secondary: #76d4e7;
-        --on-secondary: #00363d;
-        --secondary-container: #004f58;
-        --on-secondary-container: #a3eeff;
-        --tertiary: #41d8f4;
-        --on-tertiary: #00363e;
-        --tertiary-container: #004e59;
-        --on-tertiary-container: #a7eeff;
-        --error: #ffb4ab;
-        --on-error: #690005;
-        --error-container: #93000a;
-        --on-error-container: #ffdad6;
-        --surface: #0f171a;
-        --surface-dim: #0f171a;
-        --surface-bright: #353f43;
-        --surface-container-lowest: #0a1215;
-        --surface-container-low: #172023;
-        --surface-container: #1b2427;
-        --surface-container-high: #262e32;
-        --surface-container-highest: #31393d;
-        --on-surface: #e0e3e5;
-        --on-surface-variant: #c0c7cd;
-        --outline: #8a9297;
-        --outline-variant: #41484d;
-        --background: #0f171a;
-        --on-background: #e0e3e5;
-        --card-bg: #1b2427;
-        --border: #31393d;
-        --gutter: 24px;
-        --card-padding: 20px;
-        --stack-gap: 12px;
-        
-        /* Rounded corners */
-        --rounded-sm: 0.125rem;
-        --rounded: 0.25rem;
-        --rounded-md: 0.375rem;
-        --rounded-lg: 0.5rem;
-        --rounded-xl: 0.75rem;
+        /* Surface & Backgrounds */
+        --bg-app: #F9F8F3;                /* Main application canvas (warm ivory) */
+        --bg-surface: #F2EFE7;            /* Sidebar & secondary background */
+        --bg-card: #FFFFFF;               /* Primary card surface */
+        --bg-card-alt: #F7F5EE;           /* Highlighted card / accordion container */
+        --bg-badge: #191919;              /* Dark pill badge background */
+
+        /* Text & Content */
+        --text-primary: #191919;          /* Deep charcoal primary text */
+        --text-secondary: #555555;        /* Neutral gray secondary text */
+        --text-muted: #707070;            /* Muted detail text */
+        --text-disabled: rgba(25, 25, 25, 0.38); /* Disabled-state text/icons */
+        --on-badge: #FFFFFF;              /* Text on dark badges */
+
+        /* Primary Brand Accent */
+        --primary: #1648d8;
+        --primary-hover: #1036aa;
+        --primary-light: #E8EEFF;
+        --primary-border: #9BB3FF;
+
+        /* Borders & Dividers */
+        --border-light: #E6E2D8;
+        --border-subtle: #EAE6DD;
+        --border-focus: #1648d8;
+
+        /* Status & Checklist Colors */
+        --status-complete: #191919;
+        --status-pending: #888888;
+
+        /* Shadow & Elevation */
+        --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.03);
+        --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.06);
+
+        /* Motion */
+        --transition-fast: 120ms ease-out;   /* icon/state toggles */
+        --transition-base: 200ms ease;       /* card hover, accordion expand */
+
+        /* Spacing (4px base grid) */
+        --space-1: 4px;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-5: 20px;
+        --space-6: 24px;
+        --space-7: 32px;
+        --space-8: 40px;
+
+        /* Legacy variable aliases mapped to modern design tokens */
+        --paper: var(--bg-app);
+        --ink: var(--text-primary);
+        --line: var(--border-light);
+        --grid-line: rgba(230, 226, 216, 0.40);
+        --blue: var(--primary);
+        --sans: 'Inter', system-ui, -apple-system, sans-serif;
+        --serif: 'Newsreader', Georgia, serif;
+        --mono: 'Space Grotesk', 'JetBrains Mono', monospace;
+        --surface: var(--bg-app);
+        --surface-container: var(--bg-surface);
+        --surface-container-low: var(--bg-card-alt);
+        --surface-container-highest: var(--bg-card-alt);
+        --on-surface: var(--text-primary);
+        --on-surface-variant: var(--text-secondary);
+        --outline: var(--border-light);
+        --card-bg: var(--bg-card);
+        --border: var(--border-light);
+        --rounded: 16px;
+        --rounded-md: 12px;
+        --rounded-lg: 16px;
+        --rounded-xl: 20px;
+        --card-padding: 24px 32px;
+        --stack-gap: 16px;
     }
 
     /* ── Reset Streamlit defaults ──────────────────────────── */
+    html, body, [data-testid="stAppViewContainer"], .main {
+        overflow-x: hidden !important;
+    }
     html, body, [class*="css"] {
         font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
-        color: var(--on-surface) !important;
+        color: var(--text-primary) !important;
     }
     .stApp {
-        background: var(--background) !important;
+        background: var(--bg-app) !important;
+        color: var(--text-primary) !important;
     }
-    /* Hide streamlit chrome but keep sidebar toggle */
-    #MainMenu, [data-testid="stMainMenu"],
-    [data-testid="stAppDeployButton"],
-    footer, .stDeployButton { display: none !important; }
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-        border: none !important;
-    }
-
-    /* ── Typography ────────────────────────────────────────── */
-    h1, h2, h3 {
-        color: var(--on-surface) !important;
-    }
-    .stMarkdown p, .stMarkdown li, .stMarkdown span {
-        color: var(--on-surface-variant) !important;
-    }
-    h1 {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 30px !important;
-        font-weight: 600 !important;
-        line-height: 38px !important;
-        letter-spacing: -0.02em !important;
-    }
-    h2 {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 24px !important;
-        font-weight: 600 !important;
-        line-height: 32px !important;
-        letter-spacing: -0.01em !important;
-    }
-    h3 {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 20px !important;
-        font-weight: 600 !important;
-        line-height: 28px !important;
-    }
-    .body-lg {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 16px !important;
-        font-weight: 400 !important;
-        line-height: 24px !important;
-        color: var(--on-surface-variant) !important;
-    }
-    .body-sm {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 14px !important;
-        font-weight: 400 !important;
-        line-height: 20px !important;
-        color: var(--on-surface-variant) !important;
-    }
-    .label-caps {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 12px !important;
-        font-weight: 700 !important;
-        line-height: 16px !important;
-        letter-spacing: 0.05em !important;
-        text-transform: uppercase !important;
-        color: var(--on-surface) !important;
-    }
-    .mono-data {
-        font-family: 'Space Grotesk', monospace !important;
-        font-size: 13px !important;
-        font-weight: 400 !important;
-        line-height: 18px !important;
-        color: var(--on-surface) !important;
-    }
-
-    /* ── Widget Labels ─────────────────────────────────────── */
-    label, [data-testid="stWidgetLabel"] p, [data-testid="stCheckbox"] label {
-        color: var(--on-surface) !important;
-        font-weight: 600 !important;
-        font-size: 14px !important;
-    }
-
-    /* ── File Uploader ───────────────────────────────────── */
-    [data-testid="stFileUploader"] {
-        background: transparent !important;
-    }
-    [data-testid="stFileUploaderDropzone"] {
-        background: var(--surface-container) !important;
-        border: 1px dashed var(--outline) !important;
-        border-radius: var(--rounded) !important;
-    }
-    /* Force high-contrast text on everything inside the uploader */
-    [data-testid="stFileUploader"] label,
-    [data-testid="stFileUploaderDropzone"] div,
-    [data-testid="stFileUploaderDropzone"] p,
-    [data-testid="stFileUploaderDropzone"] span,
-    [data-testid="stFileUploaderDropzone"] small,
-    [data-testid="stFileUploaderDropzone"] button {
-        color: var(--on-surface) !important;
-    }
-    /* Icon color */
-    [data-testid="stFileUploaderDropzone"] svg {
-        fill: var(--on-surface) !important;
-    }
-
-    /* ── Sidebar ──────────────────────────────────────────── */
-    [data-testid="stSidebar"] {
-        background: var(--surface-container-low) !important; 
-        border-right: 1px solid var(--border) !important;
-        width: 320px !important;
-    }
-
-    /* ── Cards ────────────────────────────────────────────── */
-    .eco-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: var(--rounded-lg);
-        padding: var(--card-padding);
-        position: relative;
-        overflow: hidden;
-        margin-bottom: var(--stack-gap);
-    }
-    .eco-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: var(--primary);
-    }
-
-    /* ── Secondary Button (Download) ────────────────────── */
-    .stDownloadButton > button {
-        background: transparent !important;
-        color: var(--secondary) !important;
-        border: 1px solid var(--secondary) !important;
-        border-radius: var(--rounded);
-        font-weight: 600 !important;
-        font-size: 14px !important;
-        padding: 0.5rem 1rem;
-        text-transform: none !important;
-        box-shadow: none !important;
-    }
-    .stDownloadButton > button:hover {
-        background: rgba(118, 212, 231, 0.1) !important;
-        transform: none !important;
-    }
-
-    /* ── Primary Action Button (Run) ─────────────────────── */
-    .stButton > button[kind="primary"] {
-        background: var(--primary) !important;
-        color: var(--on-primary) !important;
-        border: none !important;
-        border-radius: var(--rounded);
-        font-weight: 700 !important;
-    }
-
-    /* ── Metric boxes ────────────────────────────────────── */
-    [data-testid="stMetric"] {
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: var(--rounded);
-        padding: 1rem;
-    }
-    [data-testid="stMetricValue"] {
-        font-family: 'Space Grotesk', monospace !important;
-        font-size: 24px !important;
-        font-weight: 400 !important;
-        color: var(--on-surface) !important;
-    }
-    [data-testid="stMetricLabel"] {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 12px !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.05em !important;
-        text-transform: uppercase !important;
-        color: var(--on-surface-variant) !important;
-    }
-
-    /* ── Tabs ─────────────────────────────────────────────── */
-    .stTabs [data-baseweb="tab-list"] {
-        border-bottom: 1px solid var(--border);
-        background: transparent !important;
-    }
-    .stTabs [data-baseweb="tab"] {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 12px !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: var(--on-surface-variant);
-        background: transparent !important;
-    }
-    .stTabs [aria-selected="true"] {
-        color: var(--primary) !important;
-        border-bottom: 2px solid var(--primary) !important;
-    }
-
-    /* ── Target badge ────────────────────────────────────── */
-    .target-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        padding: 0.2rem 0.65rem;
-        font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        border-radius: 4px;
-    }
-    .target-badge.primary {
-        background: #e6eaf8;
-        color: #10255e;
-        border: 1px solid #1648d8;
-    }
-    .target-badge.secondary {
-        background: #1e293b;
-        color: #e2e8f0;
-        border: 1px solid #334155;
-    }
-
-    /* ── Status indicator / Chips ────────────────────────── */
-    .status-dot {
-        display: inline-block;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        margin-right: 8px;
-    }
-    .status-dot.live { background: #10b981; }
-    .status-dot.error { background: #ef4444; }
-
-    .status-chip {
-        display: inline-flex;
-        align-items: center;
-        padding: 2px 10px;
-        border-radius: 9999px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .status-chip.success {
-        background: #e1e7d7;
-        color: #173b27;
-        border: 1px solid #62806b;
-    }
-    .status-chip.running {
-        background: #0c4a6e;
-        color: #e0f2fe;
-        border: 1px solid #075985;
-    }
-    .status-chip.error {
-        background: #7f1d1d;
-        color: #fef2f2;
-        border: 1px solid #991b1b;
-    }
-
-    /* ── Label caps ──────────────────────────────────────── */
-    .label-caps {
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--on-surface);
-    }
-
-    /* ── Mono data ───────────────────────────────────────── */
-    .mono-data {
-        font-family: 'Space Grotesk', monospace;
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: var(--on-surface);
-    }
-
-    /* ── Explanation text ────────────────────────────────── */
-    .explain {
-        font-size: 0.88rem;
-        line-height: 1.6;
-        color: var(--on-surface-variant);
-        margin-bottom: 1.2rem;
-    }
-
-    /* ── Footer bar ──────────────────────────────────────── */
-    .footer-bar {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.5rem;
-        margin-top: 3rem;
-        padding: 1.5rem;
-        background: var(--surface-container-low);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-    }
-    .footer-bar .label-caps { margin-bottom: 0.4rem; color: var(--on-surface-variant); }
-    .footer-bar .value {
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--primary);
-    }
-
-    /* ── Expander sections ───────────────────────────────── */
-    .streamlit-expanderHeader {
-        background: var(--card-bg) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: var(--rounded) !important;
-        padding: 1rem 1.2rem !important;
-        font-family: 'Inter', sans-serif !important;
-        font-size: 0.95rem !important;
-        font-weight: 700 !important;
-        color: var(--on-surface) !important;
-    }
-    .streamlit-expanderContent {
-        background: var(--surface-container-low) !important;
-        border: 1px solid var(--border) !important;
-        border-top: none !important;
-        border-radius: 0 0 8px 8px !important;
-        padding: 1.2rem !important;
-        margin-top: -1px !important;
-    }
-    .streamlit-expanderContent h3 {
-        color: var(--primary) !important;
-        font-size: 1.1rem !important;
-        font-weight: 800 !important;
-        margin: 1.2rem 0 0.6rem 0 !important;
-    }
-    .streamlit-expanderContent p,
-    .streamlit-expanderContent li {
-        color: var(--on-surface-variant) !important;
-        font-size: 0.9rem !important;
-        line-height: 1.7 !important;
-    }
-    .streamlit-expanderContent strong {
-        color: var(--on-surface) !important;
-        font-weight: 700 !important;
-    }
-    .streamlit-expanderContent code {
-        background: #e7e3d8 !important;
-        color: #171714 !important;
-        padding: 0.2rem 0.4rem !important;
-        border-radius: 0 !important;
-        font-family: 'DM Mono', monospace !important;
-        font-size: 0.85rem !important;
-        border: 1px solid #aaa69b !important;
-    }
-
-    /* ── Markdown content ───────────────────────────────── */
-    .stMarkdown {
-        color: var(--on-surface) !important;
-    }
-    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
-        color: var(--primary) !important;
-        font-weight: 800 !important;
-        margin-top: 1.5rem !important;
-    }
-    .stMarkdown p, .stMarkdown li {
-        color: var(--on-surface-variant) !important;
-        line-height: 1.7 !important;
-        font-size: 0.95rem !important;
-    }
-    .stMarkdown strong {
-        color: var(--on-surface) !important;
-        font-weight: 700 !important;
-    }
-    .stMarkdown code {
-        background: #e7e3d8 !important;
-        color: #171714 !important;
-        padding: 0.2rem 0.4rem !important;
-        border-radius: 0 !important;
-        font-family: 'DM Mono', monospace !important;
-        border: 1px solid #aaa69b !important;
-    }
-
-    /* ── Info/Warning/Success boxes ───────────────────────── */
-    .stInfo, .stWarning, .stSuccess, .stError {
-        background: var(--surface-container-low) !important;
-        border: 1px solid var(--border) !important;
-        border-left: 5px solid var(--outline) !important;
-        border-radius: 8px !important;
-        padding: 1.2rem !important;
-    }
-    .stInfo { border-left-color: #3b82f6 !important; }
-    .stWarning { border-left-color: #f59e0b !important; }
-    .stSuccess { border-left-color: #10b981 !important; }
-    .stError { border-left-color: #ef4444 !important; }
-
-    .stInfo p, .stWarning p, .stSuccess p, .stError p {
-        color: var(--on-surface) !important;
-        font-size: 0.92rem !important;
-        font-weight: 500 !important;
-    }
-
-    /* ── Buttons ────────────────────────────────────────── */
-    .stButton > button {
-        font-family: 'Inter', sans-serif !important;
-        font-weight: 700 !important;
-        font-size: 0.95rem !important;
-        border-radius: 6px !important;
-        padding: 0.5rem 1.2rem !important;
-    }
-    .stButton > button[kind="primary"] {
-        background: var(--primary) !important;
-        color: var(--on-primary) !important;
-        border: none !important;
-    }
-
-    /* ── Headers in alert boxes ───────────────────────────── */
-    .stAlert h3 {
-        color: var(--primary) !important;
-        font-size: 1.1rem !important;
-        font-weight: 800 !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# ---------------------------------------------------------------------------
-# Visual refinement layer — modern scientific workspace
-# ---------------------------------------------------------------------------
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap');
-
-    :root {
-        --paper: #f2efe7;
-        --ink: #171714;
-        --line: #c9c5ba;
-        --blue: #1648d8;
-        --mono: 'DM Mono', ui-monospace, monospace;
-        --sans: 'Manrope', Arial, sans-serif;
-        --serif: 'Newsreader', Georgia, serif;
-        --primary: #1648d8;
-        --on-primary: #ffffff;
-        --primary-container: #dce4ff;
-        --on-primary-container: #10255e;
-        --secondary: #171714;
-        --tertiary: #1648d8;
-        --surface: #f2efe7;
-        --surface-container-lowest: #faf8f2;
-        --surface-container-low: #ede9df;
-        --surface-container: #f7f4ed;
-        --surface-container-high: #e6e1d6;
-        --surface-container-highest: #ddd8cc;
-        --on-surface: #171714;
-        --on-surface-variant: #57564f;
-        --outline: #858278;
-        --outline-variant: #c9c5ba;
-        --background: #f2efe7;
-        --card-bg: #f7f4ed;
-        --border: #c9c5ba;
-        --rounded: 0;
-        --rounded-lg: 0;
-        --rounded-xl: 0;
-        --card-padding: 1.35rem;
-        --stack-gap: 1rem;
-    }
-
-    .stApp {
-        background: var(--paper) !important;
-        color: var(--ink) !important;
-        font-family: var(--sans) !important;
-    }
-    [data-testid="stDecoration"] {
-        display: none !important;
-    }
-    [data-testid="stToolbar"] {
-        display: flex !important;
-    }
-    /* Streamlit adds copy-link icons beside every Markdown heading. They are
-       distracting in this app and do not represent an application action. */
-    [data-testid="stHeaderActionElements"] {
-        display: none !important;
-    }
+    [data-testid="stDecoration"] { display: none !important; }
+    [data-testid="stToolbar"] { display: flex !important; }
+    [data-testid="stHeaderActionElements"] { display: none !important; }
     header[data-testid="stHeader"] {
         height: 2.5rem !important;
         background: transparent !important;
+        border: none !important;
     }
     [data-testid="stAppViewContainer"] > .main {
-        background: transparent;
+        background: transparent !important;
     }
     .main .block-container {
         max-width: 1240px;
         padding: 3.25rem 2.4rem 4rem !important;
-        border-left: 1px solid var(--line);
-        border-right: 1px solid var(--line);
     }
 
-    /* Sidebar */
-    [data-testid="stSidebar"] {
-        width: 348px !important;
-        background:
-            linear-gradient(var(--line) 1px, transparent 1px),
-            linear-gradient(90deg, var(--line) 1px, transparent 1px),
-            var(--paper) !important;
-        background-size: 28px 28px !important;
-        background-position: -1px -1px !important;
-        border-right: 1px solid var(--border) !important;
-        box-shadow: none;
+    /* ── Typography Hierarchy (§2 Specification) ───────────── */
+    h1, .stMarkdown h1 {
+        font-family: 'Newsreader', Georgia, serif !important;
+        font-size: clamp(34px, 4.5vw, 44px) !important;
+        font-weight: 600 !important;
+        line-height: 1.15 !important;
+        letter-spacing: -0.02em !important;
+        color: var(--text-primary) !important;
     }
-    [data-testid="stSidebar"] > div:first-child {
-        width: 348px !important;
+    h2, .stMarkdown h2 {
+        font-family: 'Newsreader', Georgia, serif !important;
+        font-size: clamp(24px, 3.5vw, 28px) !important;
+        font-weight: 600 !important;
+        line-height: 1.25 !important;
+        letter-spacing: -0.01em !important;
+        color: var(--text-primary) !important;
     }
-    [data-testid="stSidebar"][aria-expanded="false"] {
-        overflow: visible !important;
-        transform: translateX(-348px) !important;
+    h3, .stMarkdown h3 {
+        font-family: 'Newsreader', Georgia, serif !important;
+        font-size: clamp(20px, 3vw, 22px) !important;
+        font-weight: 600 !important;
+        line-height: 1.30 !important;
+        letter-spacing: 0em !important;
+        color: var(--text-primary) !important;
     }
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebarCollapseButton"] button,
-    [data-testid="stExpandSidebarButton"] {
-        visibility: visible !important;
-        opacity: 1 !important;
+    h4, .stMarkdown h4 {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        line-height: 1.40 !important;
+        letter-spacing: 0em !important;
+        color: var(--text-primary) !important;
     }
-    [data-testid="stSidebarCollapseButton"] button,
-    [data-testid="stExpandSidebarButton"] {
-        width: 32px !important;
-        height: 32px !important;
-        border: 1px solid var(--ink) !important;
-        border-radius: 0 !important;
+    .body-lg, p, li, .stMarkdown p, .stMarkdown li {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 15px !important;
+        font-weight: 400 !important;
+        line-height: 1.55 !important;
+        color: var(--text-secondary) !important;
+    }
+    .body-sm {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 13px !important;
+        font-weight: 400 !important;
+        line-height: 1.50 !important;
+        color: var(--text-secondary) !important;
+    }
+    .label-caps {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        line-height: 1.20 !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+        color: var(--text-secondary) !important;
+    }
+    .mono-data, code {
+        font-family: 'Space Grotesk', 'JetBrains Mono', monospace !important;
+        font-size: 13px !important;
+        font-weight: 400 !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* ── Dark Pill Badges (§4A Specification) ──────────────── */
+    .claude-badge, .target-badge, .doc-meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 4px 10px;
+        background: var(--bg-badge) !important;
+        color: var(--on-badge) !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
+        border-radius: 9999px !important;
+        border: none !important;
+    }
+
+    /* ── Course / Feature Card Container (§4A Specification) ─ */
+    .claude-card, .eco-card {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: 16px !important;
+        padding: var(--space-6) var(--space-7) !important;
+        box-shadow: var(--shadow-card) !important;
+        transition: transform var(--transition-base), box-shadow var(--transition-base) !important;
+        margin-bottom: var(--space-5) !important;
+        position: relative;
+        overflow: hidden;
+    }
+    .claude-card:hover, .eco-card:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: var(--shadow-hover) !important;
+    }
+    .claude-card:focus-visible, .eco-card:focus-visible {
+        outline: 2px solid var(--border-focus) !important;
+        outline-offset: 2px !important;
+    }
+
+    /* ── Static Checklist Progress Display (§4B Specification) */
+    .claude-list-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: var(--space-4) 0;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    .claude-list-item:last-child {
+        border-bottom: none;
+    }
+    .claude-check-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        font-size: 11px;
+        flex-shrink: 0;
+    }
+    .claude-check-icon.complete {
+        background: var(--status-complete);
+        color: #FFFFFF;
+    }
+    .claude-check-icon.pending {
+        border: 2px solid var(--status-pending);
+        background: transparent;
+        color: transparent;
+    }
+    .claude-list-title {
+        font-family: 'Newsreader', Georgia, serif;
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 1.40;
+        color: var(--text-primary);
+    }
+
+    /* ── Controls, Buttons & Inputs (§4C Specification) ────── */
+    .stButton > button {
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        transition: background var(--transition-fast), border-color var(--transition-fast) !important;
+        border: 1px solid var(--border-light) !important;
+        background: var(--bg-card) !important;
+        color: var(--text-primary) !important;
+        box-shadow: none !important;
+    }
+    .stButton > button:hover {
+        background: var(--bg-card-alt) !important;
+        border-color: var(--border-light) !important;
+        color: var(--text-primary) !important;
+    }
+    .stButton > button[kind="primary"] {
+        background: var(--primary) !important;
+        color: #FFFFFF !important;
+        border: none !important;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background: var(--primary-hover) !important;
+        color: #FFFFFF !important;
+    }
+    .stButton > button:focus-visible {
+        outline: 2px solid var(--border-focus) !important;
+        outline-offset: 2px !important;
+    }
+    .stButton > button:disabled {
+        opacity: 0.38 !important;
+        cursor: not-allowed !important;
+    }
+
+    .stDownloadButton > button {
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        border-radius: 8px !important;
+        padding: 10px 18px !important;
+        background: var(--bg-card) !important;
+        color: var(--primary) !important;
+        border: 1px solid var(--primary-border) !important;
+        box-shadow: none !important;
+        transition: background var(--transition-fast) !important;
+    }
+    .stDownloadButton > button:hover {
+        background: var(--primary-light) !important;
+        color: var(--primary-hover) !important;
+        border-color: var(--primary) !important;
+    }
+
+    /* ── Metric Boxes ─────────────────────────────────────── */
+    [data-testid="stMetric"] {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: 16px !important;
+        padding: 16px 20px !important;
+        box-shadow: var(--shadow-card) !important;
+    }
+    [data-testid="stMetricValue"] {
+        font-family: 'Space Grotesk', 'JetBrains Mono', monospace !important;
+        font-size: 24px !important;
+        font-weight: 600 !important;
+        color: var(--text-primary) !important;
+    }
+    [data-testid="stMetricLabel"] {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+        color: var(--text-secondary) !important;
+    }
+
+    /* ── Expanders ────────────────────────────────────────── */
+    .streamlit-expanderHeader {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-light) !important;
+        border-radius: 16px !important;
+        padding: 16px 20px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        color: var(--text-primary) !important;
+    }
+    .streamlit-expanderContent {
+        background: var(--bg-card-alt) !important;
+        border: 1px solid var(--border-light) !important;
+        border-top: none !important;
+        border-radius: 0 0 16px 16px !important;
+        padding: 20px !important;
+        margin-top: -1px !important;
+    }
         background: var(--paper) !important;
         color: var(--ink) !important;
     }
@@ -648,10 +424,10 @@ st.markdown(
         color: #fff !important;
     }
     [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
-        padding: 1.25rem 1.15rem 1.5rem !important;
+        padding: 0.9rem 1.15rem 1rem !important;
     }
     [data-testid="stSidebar"] hr {
-        margin: 1.15rem 0 !important;
+        margin: 0.75rem 0 !important;
         border-color: var(--border) !important;
     }
     [data-testid="stSidebar"] .stCaption {
@@ -739,6 +515,30 @@ st.markdown(
         letter-spacing: 0.05em;
         text-transform: uppercase;
     }
+    .sidebar-doc-link {
+        margin-top: 2px !important;
+    }
+    .sidebar-doc-link button {
+        background: transparent !important;
+        border: none !important;
+        color: var(--blue) !important;
+        font-family: var(--mono) !important;
+        font-size: 10px !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+        text-decoration: underline !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        min-height: auto !important;
+        height: auto !important;
+        line-height: 1.6 !important;
+        box-shadow: none !important;
+    }
+    .sidebar-doc-link button:hover {
+        color: #0b2d94 !important;
+        background: transparent !important;
+    }
 
     /* Upload and controls */
     [data-testid="stFileUploader"] > label {
@@ -799,43 +599,59 @@ st.markdown(
     .hero-shell {
         position: relative;
         overflow: hidden;
-        min-height: 330px;
+        min-height: 360px;
         padding: clamp(2rem, 5vw, 4.5rem);
         border: 1px solid var(--line);
         border-radius: 0;
-        background: var(--paper);
+        background:
+            linear-gradient(var(--line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--line) 1px, transparent 1px),
+            var(--paper) !important;
+        background-size: 28px 28px !important;
+        background-position: -1px -1px !important;
         box-shadow: none;
     }
-    .hero-shell::after {
+    .signal {
+        width: 170px;
+        height: 170px;
+        aspect-ratio: 1;
+        padding: 0;
+        border: 0;
+        background: var(--blue) !important;
+        border-radius: 50% !important;
+        position: absolute;
+        right: 25px !important;
+        top: 25px !important;
+        left: auto !important;
+        z-index: 5;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        mix-blend-mode: multiply;
+        box-shadow: none;
+        will-change: transform;
+        outline-offset: 5px;
+    }
+    .signal:active, .signal.is-dragging {
+        cursor: grabbing;
+        box-shadow: none;
+    }
+    .signal:focus-visible {
+        outline: 2px solid var(--ink);
+    }
+    .signal::before, .signal::after {
         content: "";
         position: absolute;
-        width: 250px;
-        height: 250px;
-        right: -55px;
-        top: -65px;
-        border: 0;
+        inset: 22%;
+        border: 1px solid rgba(255, 255, 255, 0.85);
         border-radius: 50%;
-        background:
-            radial-gradient(
-                circle at center,
-                var(--paper) 0 9%,
-                transparent 9.5% 39%,
-                rgba(242, 239, 231, 0.92) 39.4% 40%,
-                transparent 40.4%
-            ),
-            repeating-linear-gradient(
-                0deg,
-                transparent 0 31px,
-                rgba(23, 23, 20, 0.32) 31px 32px
-            ),
-            repeating-linear-gradient(
-                90deg,
-                transparent 0 31px,
-                rgba(23, 23, 20, 0.32) 31px 32px
-            ),
-            var(--blue);
-        opacity: 0.92;
-        mix-blend-mode: multiply;
+        pointer-events: none;
+    }
+    .signal::after {
+        inset: 43%;
+        background: var(--paper) !important;
+        border: 0;
     }
     .hero-kicker {
         display: inline-flex;
@@ -1252,23 +1068,74 @@ st.markdown(
         border-radius: 50%;
         background: #16845b;
     }
+    /* ── Streamlit Tabs Comprehensive Fix ───────────────────── */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 0.35rem;
-        padding: 0.3rem;
-        border: 1px solid var(--ink);
-        border-radius: 0;
-        background: var(--paper) !important;
+        border-bottom: 1px solid var(--border-light, #E6E2D8) !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        gap: 1.5rem !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 1.5rem !important;
     }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 0;
-        padding: 0.55rem 0.9rem;
-        text-transform: none;
-        letter-spacing: 0;
-    }
-    .stTabs [aria-selected="true"] {
+    .stTabs button[data-baseweb="tab"],
+    .stTabs [data-baseweb="tab"],
+    .stTabs div[role="tab"] {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        color: var(--text-secondary, #555555) !important;
+        background: transparent !important;
+        background-color: transparent !important;
         border: none !important;
-        background: var(--blue) !important;
-        color: #fff !important;
+        border-bottom: 2px solid transparent !important;
+        border-radius: 0 !important;
+        padding: 0.6rem 0.25rem !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+    .stTabs button[data-baseweb="tab"] *,
+    .stTabs [data-baseweb="tab"] *,
+    .stTabs div[role="tab"] * {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        color: var(--text-secondary, #555555) !important;
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+    .stTabs button[data-baseweb="tab"]:hover,
+    .stTabs button[data-baseweb="tab"]:hover *,
+    .stTabs [data-baseweb="tab"]:hover,
+    .stTabs [data-baseweb="tab"]:hover * {
+        color: var(--text-primary, #191919) !important;
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+    .stTabs button[aria-selected="true"],
+    .stTabs button[data-baseweb="tab"][aria-selected="true"],
+    .stTabs [data-baseweb="tab"][aria-selected="true"],
+    .stTabs div[role="tab"][aria-selected="true"] {
+        background: transparent !important;
+        background-color: transparent !important;
+        border-bottom: 2px solid var(--primary, #1648d8) !important;
+        border-radius: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+    .stTabs button[aria-selected="true"] *,
+    .stTabs button[data-baseweb="tab"][aria-selected="true"] *,
+    .stTabs [data-baseweb="tab"][aria-selected="true"] *,
+    .stTabs div[role="tab"][aria-selected="true"] * {
+        color: var(--primary, #1648d8) !important;
+        font-weight: 600 !important;
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+    .stTabs [data-baseweb="tab-highlight"] {
+        background-color: var(--primary, #1648d8) !important;
+    }
+    .stTabs [data-baseweb="tab-border"] {
+        background-color: var(--border-light, #E6E2D8) !important;
     }
     .stDownloadButton > button {
         border-radius: 0 !important;
@@ -1638,8 +1505,8 @@ with st.sidebar:
         <div class="brand-lockup">
             <div class="brand-mark" aria-hidden="true"></div>
             <div class="brand-copy">
-                <h1>Lake Time-Series Forecasting</h1>
-                <p>Explainable scenario engine</p>
+                <h1>Time-Series Forecasting</h1>
+                <p>Universal scenario engine</p>
             </div>
         </div>
         """,
@@ -1652,6 +1519,15 @@ with st.sidebar:
         type=["xls", "xlsx"],
         help="Excel file: Sheet 1 = Historical, Sheet 2+ = Scenarios (one column empty).",
     )
+    if EXAMPLE_FILE_BYTES:
+        st.download_button(
+            label="Download Example File",
+            data=EXAMPLE_FILE_BYTES,
+            file_name="Time_Series_Forecasting_Demo_2000_Rows.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True,
+            help="Download a sample Excel dataset to see how your workbook should be formatted.",
+        )
     st.markdown(
         """
         <div class="sidebar-note">
@@ -1663,32 +1539,29 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown('<p class="sidebar-label">Experience</p>', unsafe_allow_html=True)
-    st.radio(
-        "Mode",
-        ["Basic", "Advanced"],
-        horizontal=True,
-        key="app_mode",
-        label_visibility="collapsed",
-    )
-    if st.session_state.app_mode == "Basic":
-        st.caption("Fast workflow with safe automatic defaults.")
-    else:
-        st.caption("Cleaning controls, live tuning, and model diagnostics.")
-
-    st.markdown('<p class="sidebar-label" style="margin-top:1rem !important;">Model options</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sidebar-label">Model options</p>', unsafe_allow_html=True)
     st.checkbox(
         "Seasonal effects",
         key="seasonal_mode",
-        help="Use cyclical month / hour / day-of-year features to capture seasonality "
-             "(recommended for environmental & climate data). Turn OFF for non-seasonal data.",
+        help="Use cyclical month / hour / day-of-year features to capture calendar seasonality "
+             "(recommended for seasonal, financial, weather, demand, or operational data). Turn OFF for non-seasonal data.",
     )
+    show_doc = st.session_state.get("show_doc", False)
     st.markdown(
         """
-        <p class="sidebar-signoff">v2.0.0 · XGBoost · SHAP · Time-series CV</p>
+        <div class="sidebar-signoff" style="line-height:1.6;">
+            <div>v2.0.0 · XGBoost · SHAP · Time-series CV</div>
+            <div>By <a href="https://github.com/omidabduli" target="_blank" style="color:var(--blue);text-decoration:underline;">Omid Abduli</a> · <a href="https://roland-digital.de" target="_blank" style="color:var(--ink);text-decoration:underline;">Roland Digital</a> · <a href="https://github.com/omidabduli/lake-simulation-timeseries" target="_blank" style="color:var(--ink);text-decoration:underline;">GitHub ↗</a></div>
+        </div>
         """,
         unsafe_allow_html=True,
     )
+    doc_link_label = "← Back to Workspace" if show_doc else "Documentation"
+    st.markdown('<div class="sidebar-doc-link">', unsafe_allow_html=True)
+    if st.button(doc_link_label, key="sidebar_doc_toggle"):
+        st.session_state["show_doc"] = not show_doc
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1716,6 +1589,7 @@ def _display_field_name(field_name: str) -> str:
     words = [units.get(token.lower(), token.capitalize()) for token in tokens if token]
     label = " ".join(words)
     return label.replace("mg L", "mg/L").replace("µg L", "µg/L")
+
 
 
 # ---------------------------------------------------------------------------
@@ -1990,38 +1864,414 @@ def _run_scenario(
 # ---------------------------------------------------------------------------
 # Main content area
 # ---------------------------------------------------------------------------
+if st.session_state.get("show_doc", False):
+    render_documentation(EXAMPLE_FILE_BYTES)
+    st.stop()
+
 if uploaded is None:
-    # Empty state
-    st.markdown(
+    # Empty state - Interactive Hero via components.html
+    components.html(
         """
-        <div class="hero-shell">
-            <div class="hero-kicker">Environmental intelligence workspace</div>
-            <h1>Turn lake history into <span>clear scenarios.</span></h1>
-            <p>
-                Upload a structured Excel workbook and the forecasting engine will validate the data,
-                train a time-aware model, project every scenario, and explain what drove the result.
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+          
+          :root {
+            --paper: #F9F8F3;
+            --ink: #191919;
+            --grid-line: rgba(230, 226, 216, 0.40);
+            --blue: #1648d8;
+            --mono: 'Space Grotesk', monospace;
+            --sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --serif: 'Newsreader', Georgia, serif;
+          }
+          
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: var(--sans);
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+          }
+
+          .hero-shell {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            padding: 2.2rem 2.5rem;
+            border: 1px solid #c9c5ba;
+            background:
+              linear-gradient(var(--grid-line) 1px, transparent 1px),
+              linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+              var(--paper);
+            background-size: 28px 28px;
+            background-position: -1px -1px;
+            overflow: hidden;
+          }
+
+          .hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-bottom: 0.9rem;
+            color: var(--ink);
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+          }
+          .hero-kicker::before {
+            content: "";
+            width: 24px;
+            height: 1px;
+            background: var(--ink);
+          }
+
+          h1 {
+            max-width: 680px;
+            margin: 0;
+            color: var(--ink);
+            font-family: var(--serif);
+            font-size: clamp(38px, 5.5vw, 68px);
+            font-weight: 400;
+            line-height: 0.92;
+            letter-spacing: -0.055em;
+          }
+          h1 span span { color: var(--blue); }
+
+          p.hero-desc {
+            max-width: 580px;
+            margin: 1.1rem 0 0;
+            color: #525049;
+            font-size: 15px;
+            line-height: 1.55;
+          }
+
+          .hero-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.6rem;
+          }
+          .hero-flow span {
+            padding: 0.45rem 0.7rem;
+            border: 1px solid var(--ink);
+            background: var(--paper);
+            font-family: var(--mono);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+          }
+          .hero-flow b {
+            color: var(--blue);
+            font-size: 12px;
+          }
+
+          .signal {
+            width: 150px;
+            height: 150px;
+            aspect-ratio: 1;
+            padding: 0;
+            border: 0;
+            background: var(--blue);
+            border-radius: 50%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 10;
+            cursor: grab;
+            touch-action: none;
+            mix-blend-mode: multiply;
+            outline: none;
+            will-change: transform;
+          }
+          .signal:active, .signal.is-dragging { cursor: grabbing; }
+          .signal::before, .signal::after {
+            content: "";
+            position: absolute;
+            inset: 22%;
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 50%;
+            pointer-events: none;
+          }
+          .signal::after {
+            inset: 43%;
+            background: var(--paper);
+            border: 0;
+          }
+        </style>
+        </head>
+        <body>
+          <div class="hero-shell">
+            <div class="hero-kicker">Universal forecasting &amp; scenario intelligence</div>
+            <h1>Turn historical data into <span>clear <span style="color:#1648d8;">scenarios.</span></span></h1>
+            <p class="hero-desc">
+              Upload a structured Excel workbook and the forecasting engine will validate the data,
+              train a time-aware model, project every scenario, and explain what drove the result across any domain.
             </p>
             <div class="hero-flow">
-                <span>01 · Upload workbook</span><b>→</b>
-                <span>02 · Train & validate</span><b>→</b>
-                <span>03 · Compare outcomes</span>
+              <span>01 · Upload workbook</span><b>→</b>
+              <span>02 · Train & validate</span><b>→</b>
+              <span>03 · Compare outcomes</span>
+            </div>
+            <button class="signal" type="button" aria-label="Interactive blue ball" title="Drag me or hover to hit me down"></button>
+          </div>
+
+          <script>
+            const ball = document.querySelector(".signal");
+            const court = document.querySelector(".hero-shell");
+            if (ball && court) {
+              const state = {
+                x: 0, y: 0, vx: 0, vy: 0,
+                dragging: false, sleeping: true,
+                lastTime: 0, lastMoveTime: 0, lastMoveX: 0, lastMoveY: 0,
+                offsetX: 0, offsetY: 0
+              };
+              const gravity = 2200;
+              const bounce = 0.72;
+              const wallBounce = 0.78;
+              const padding = 18;
+              const pointer = { x: 0, y: 0, previousX: 0, previousY: 0, lastTime: 0, ready: false, inside: false };
+              let frame = 0;
+
+              const bounds = () => ({
+                minX: padding,
+                maxX: Math.max(padding, court.clientWidth - ball.offsetWidth - padding),
+                minY: padding,
+                maxY: Math.max(padding, court.clientHeight - ball.offsetHeight - padding)
+              });
+
+              const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+              const draw = () => { ball.style.transform = `translate3d(${state.x}px,${state.y}px,0)`; };
+
+              const wake = () => {
+                state.sleeping = false;
+                state.lastTime = performance.now();
+                cancelAnimationFrame(frame);
+                frame = requestAnimationFrame(step);
+              };
+
+              const reset = () => {
+                const limit = bounds();
+                state.x = limit.maxX - 20;
+                state.y = limit.minY + 20;
+                state.vx = 0;
+                state.vy = 0;
+                state.sleeping = true;
+                draw();
+              };
+
+              const step = time => {
+                if (state.dragging || state.sleeping) return;
+                const dt = Math.min((time - state.lastTime) / 1000, 0.025);
+                state.lastTime = time;
+                const limit = bounds();
+
+                state.vy += gravity * dt;
+                state.vx *= Math.pow(0.997, dt * 60);
+                state.x += state.vx * dt;
+                state.y += state.vy * dt;
+
+                if (state.x <= limit.minX) {
+                  state.x = limit.minX;
+                  state.vx = Math.abs(state.vx) * wallBounce;
+                } else if (state.x >= limit.maxX) {
+                  state.x = limit.maxX;
+                  state.vx = -Math.abs(state.vx) * wallBounce;
+                }
+                if (state.y <= limit.minY) {
+                  state.y = limit.minY;
+                  state.vy = Math.abs(state.vy) * wallBounce;
+                } else if (state.y >= limit.maxY) {
+                  state.y = limit.maxY;
+                  state.vy = -Math.abs(state.vy) * bounce;
+                  state.vx *= 0.92;
+                  if (Math.abs(state.vy) < 65 && Math.abs(state.vx) < 18) {
+                    state.vy = 0;
+                    state.vx = 0;
+                    state.sleeping = true;
+                  }
+                }
+                draw();
+                if (!state.sleeping) frame = requestAnimationFrame(step);
+              };
+
+              ball.addEventListener("pointerdown", event => {
+                event.preventDefault();
+                ball.setPointerCapture(event.pointerId);
+                const courtRect = court.getBoundingClientRect();
+                state.dragging = true;
+                state.sleeping = true;
+                state.vx = 0;
+                state.vy = 0;
+                state.offsetX = event.clientX - courtRect.left - state.x;
+                state.offsetY = event.clientY - courtRect.top - state.y;
+                state.lastMoveX = state.x;
+                state.lastMoveY = state.y;
+                state.lastMoveTime = performance.now();
+                ball.classList.add("is-dragging");
+              });
+
+              ball.addEventListener("pointermove", event => {
+                if (!state.dragging) return;
+                const courtRect = court.getBoundingClientRect();
+                const limit = bounds();
+                const now = performance.now();
+                const nextX = clamp(event.clientX - courtRect.left - state.offsetX, limit.minX, limit.maxX);
+                const nextY = clamp(event.clientY - courtRect.top - state.offsetY, limit.minY, limit.maxY);
+                const dt = Math.max((now - state.lastMoveTime) / 1000, 0.008);
+                state.vx = state.vx * 0.35 + ((nextX - state.lastMoveX) / dt) * 0.65;
+                state.vy = state.vy * 0.35 + ((nextY - state.lastMoveY) / dt) * 0.65;
+                state.x = nextX;
+                state.y = nextY;
+                state.lastMoveX = nextX;
+                state.lastMoveY = nextY;
+                state.lastMoveTime = now;
+                draw();
+              });
+
+              const release = event => {
+                if (!state.dragging) return;
+                state.dragging = false;
+                ball.classList.remove("is-dragging");
+                if (ball.hasPointerCapture(event.pointerId)) ball.releasePointerCapture(event.pointerId);
+                state.vx = clamp(state.vx, -1700, 1700);
+                state.vy = clamp(state.vy, -1900, 1900);
+                wake();
+              };
+
+              ball.addEventListener("pointerup", release);
+              ball.addEventListener("pointercancel", release);
+
+              court.addEventListener("pointermove", event => {
+                if (state.dragging || event.buttons !== 0) return;
+                const courtRect = court.getBoundingClientRect();
+                const now = performance.now();
+                const x = event.clientX - courtRect.left;
+                const y = event.clientY - courtRect.top;
+                if (!pointer.ready) {
+                  pointer.x = x; pointer.y = y; pointer.previousX = x; pointer.previousY = y; pointer.lastTime = now; pointer.ready = true;
+                  return;
+                }
+
+                const moveX = x - pointer.x;
+                const moveY = y - pointer.y;
+                const moveLengthSquared = moveX * moveX + moveY * moveY;
+                const radius = ball.offsetWidth / 2;
+                const centerX = state.x + radius;
+                const centerY = state.y + radius;
+                const segmentPosition = moveLengthSquared
+                  ? clamp(((centerX - pointer.x) * moveX + (centerY - pointer.y) * moveY) / moveLengthSquared, 0, 1)
+                  : 0;
+                const closestX = pointer.x + moveX * segmentPosition;
+                const closestY = pointer.y + moveY * segmentPosition;
+                const distance = Math.hypot(centerX - closestX, centerY - closestY);
+                const currentDistance = Math.hypot(centerX - x, centerY - y);
+                const colliding = distance <= radius + 8;
+                const dt = Math.max((now - pointer.lastTime) / 1000, 0.008);
+                const cursorVX = moveX / dt;
+                const cursorVY = moveY / dt;
+                const cursorSpeed = Math.hypot(cursorVX, cursorVY);
+
+                if (colliding && !pointer.inside && cursorSpeed > 60) {
+                  const directionX = cursorVX / cursorSpeed;
+                  const directionY = cursorVY / cursorSpeed;
+                  const impact = Math.min(cursorSpeed, 1650);
+                  state.vx = state.vx * 0.2 + directionX * impact * 0.92;
+                  state.vy = state.vy * 0.2 + directionY * impact * 0.92;
+                  const limit = bounds();
+                  state.x = clamp(state.x + directionX * Math.min(16, impact * 0.012), limit.minX, limit.maxX);
+                  state.y = clamp(state.y + directionY * Math.min(16, impact * 0.012), limit.minY, limit.maxY);
+                  draw();
+                  wake();
+                  pointer.inside = true;
+                } else if (currentDistance > radius + 20) {
+                  pointer.inside = false;
+                }
+
+                pointer.previousX = pointer.x;
+                pointer.previousY = pointer.y;
+                pointer.x = x;
+                pointer.y = y;
+                pointer.lastTime = now;
+              });
+
+              court.addEventListener("pointerleave", () => {
+                pointer.ready = false; pointer.inside = false;
+              });
+
+              window.addEventListener("resize", () => {
+                const limit = bounds();
+                state.x = clamp(state.x, limit.minX, limit.maxX);
+                state.y = clamp(state.y, limit.minY, limit.maxY);
+                draw();
+              });
+
+              setTimeout(reset, 50);
+            }
+          </script>
+        </body>
+        </html>
+        """,
+        height=365,
+        scrolling=False,
+    )
+
+    st.markdown(
+        """
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 24px;">
+            <div class="claude-card">
+                <div style="margin-bottom: 12px;">
+                    <span class="claude-badge">Time-Aware Validation</span>
+                </div>
+                <h3 style="font-family: 'Newsreader', Georgia, serif; font-size: 22px; font-weight: 600; margin: 0 0 8px 0; color: var(--text-primary);">TimeSeriesSplit CV</h3>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                    Uses forward-only expanding window cross-validation to strictly prevent future observations from leaking into past training iterations.
+                </p>
+            </div>
+            <div class="claude-card">
+                <div style="margin-bottom: 12px;">
+                    <span class="claude-badge">Scenario Engine</span>
+                </div>
+                <h3 style="font-family: 'Newsreader', Georgia, serif; font-size: 22px; font-weight: 600; margin: 0 0 8px 0; color: var(--text-primary);">Multi-Sheet Intelligence</h3>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                    Processes historical observations and projects multiple future scenario sheets simultaneously from a single Excel workbook.
+                </p>
+            </div>
+            <div class="claude-card">
+                <div style="margin-bottom: 12px;">
+                    <span class="claude-badge">Game-Theoretic XAI</span>
+                </div>
+                <h3 style="font-family: 'Newsreader', Georgia, serif; font-size: 22px; font-weight: 600; margin: 0 0 8px 0; color: var(--text-primary);">TreeSHAP Attribution</h3>
+                <p style="font-family: 'Inter', sans-serif; font-size: 15px; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                    Surfaces exact driver feature importances for every step, showing what factors moved the needle on future projections.
+                </p>
             </div>
         </div>
-        <div class="feature-grid">
-            <div class="feature-tile">
-                <span class="material-symbols-outlined">timeline</span>
-                <h3>Time-aware validation</h3>
-                <p>Forward-only cross-validation keeps future observations out of the training window.</p>
+
+        <div class="claude-card" style="margin-top: 24px;">
+            <h4 style="font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text-primary);">Engine Processing Pipeline</h4>
+            <div class="claude-list-item">
+                <span class="claude-check-icon complete" role="img" aria-label="Completed">✔</span>
+                <span class="claude-list-title">01 · Workbook Sheet Validation & Auto Target Column Detection</span>
             </div>
-            <div class="feature-tile">
-                <span class="material-symbols-outlined">hub</span>
-                <h3>Scenario intelligence</h3>
-                <p>Process multiple futures from one workbook and compare each projection consistently.</p>
+            <div class="claude-list-item">
+                <span class="claude-check-icon complete" role="img" aria-label="Completed">✔</span>
+                <span class="claude-list-title">02 · Sentinel Value Cleaning & Statistical Outlier Auditing</span>
             </div>
-            <div class="feature-tile">
-                <span class="material-symbols-outlined">psychology_alt</span>
-                <h3>Explainable results</h3>
-                <p>SHAP analysis surfaces the variables with the strongest influence on every forecast.</p>
+            <div class="claude-list-item">
+                <span class="claude-check-icon complete" role="img" aria-label="Completed">✔</span>
+                <span class="claude-list-title">03 · Forward-Only TimeSeriesSplit Cross Validation</span>
+            </div>
+            <div class="claude-list-item">
+                <span class="claude-check-icon pending" role="img" aria-label="Not started">○</span>
+                <span class="claude-list-title">04 · Interactive Plotly Scenario Projections & TreeSHAP Drivers</span>
             </div>
         </div>
         """,
@@ -2039,7 +2289,7 @@ except ValueError as e:
     st.markdown(
         f"""
         <div style="padding:1rem 1.5rem;background:var(--error-container);border-left:4px solid var(--error);border-radius:var(--rounded);margin-bottom:1.5rem;">
-            <h3 style="margin:0 0 0.25rem 0;color:var(--error);font-size:16px;">❌ File Structure Error</h3>
+            <h3 style="margin:0 0 0.25rem 0;color:var(--error);font-size:16px;">File Structure Error</h3>
             <p class="body-sm" style="margin:0;color:var(--on-error-container);">{e}</p>
         </div>
         """,
@@ -2050,7 +2300,7 @@ except Exception as e:
     st.markdown(
         f"""
         <div style="padding:1rem 1.5rem;background:var(--error-container);border-left:4px solid var(--error);border-radius:var(--rounded);margin-bottom:1.5rem;">
-            <h3 style="margin:0 0 0.25rem 0;color:var(--error);font-size:16px;">❌ File Reading Error</h3>
+            <h3 style="margin:0 0 0.25rem 0;color:var(--error);font-size:16px;">File Reading Error</h3>
             <p class="body-sm" style="margin:0;color:var(--on-error-container);">Failed to read the Excel file: {e}</p>
         </div>
         """,
@@ -2062,7 +2312,7 @@ if not scenarios:
     st.markdown(
         """
         <div style="padding:1rem 1.5rem;background:var(--surface-container-highest);border-left:4px solid var(--outline);border-radius:var(--rounded);margin-bottom:1.5rem;">
-            <h3 style="margin:0 0 0.25rem 0;color:var(--primary);font-size:16px;">⚠️ No Scenarios Found</h3>
+            <h3 style="margin:0 0 0.25rem 0;color:var(--primary);font-size:16px;">No Scenarios Found</h3>
             <p class="body-sm" style="margin:0;color:var(--on-surface-variant);">Your Excel file must have at least 2 sheets: Sheet 1 (Historical) + Sheet 2+ (Scenarios)</p>
         </div>
         """,
@@ -2567,7 +2817,7 @@ run_header.markdown(
     <div class="run-stage">
         <div class="run-stage__kicker">Model execution</div>
         <div class="run-stage__copy">
-            <h2>Running lake scenarios</h2>
+            <h2>Running time-series scenarios</h2>
             <p>{scenario_total} scenario{"s" if scenario_total != 1 else ""} queued for time-series training and validation.</p>
         </div>
     </div>

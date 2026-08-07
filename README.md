@@ -1,4 +1,4 @@
-# Lake Time-Series Forecasting
+# Universal Time-Series Forecasting
 
 [![Python Version](https://img.shields.io/badge/Python-3.9+-blue.svg?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit App](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B.svg?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io/)
@@ -7,7 +7,7 @@
 [![Release](https://img.shields.io/github/v/release/omidabduli/lake-simulation-timeseries?style=flat&label=release)](https://github.com/omidabduli/lake-simulation-timeseries/releases/latest)
 [![Developer](https://img.shields.io/badge/Developed%20by-Omid%20Abduli-1648D8.svg?style=flat)](https://github.com/omidabduli)
 
-> **Lake Time-Series Forecasting** is an explainable environmental forecasting and scenario-analysis application for scientists, limnologists, analysts, and researchers. It combines structured Excel workflows, forward-only model validation, XGBoost forecasting, and SHAP explanations in a clear, reproducible interface.
+> **Universal Time-Series Forecasting** is an explainable forecasting and multi-domain scenario-analysis engine built for data scientists, financial analysts, engineers, researchers, and operations leaders. It combines structured Excel workflows, forward-only model validation, XGBoost forecasting, and TreeSHAP explanations in a clear, reproducible interface across any time-series domain.
 
 See the [v2.0.0 release notes](https://github.com/omidabduli/lake-simulation-timeseries/releases/tag/v2.0.0)
 or review the complete [changelog](CHANGELOG.md).
@@ -20,6 +20,7 @@ or review the complete [changelog](CHANGELOG.md).
 *   **🔍 Advanced Data Quality Auditing**: Scans data on-the-fly to discover missing placeholder values (e.g., `-999`, `-9999`) and statistical outliers using robust **Interquartile Range (IQR)** filtering.
 *   **🧠 High-Performance Modeling**: Powered by **XGBoost** with automated **Time-Series Cross-Validation (TimeSeriesSplit)** hyperparameter optimization to prevent training leakages.
 *   **🔮 SHAP Explainability (XAI)**: Demystifies the machine learning "black box" by calculating exact game-theory-based SHAP values, identifying which parameters drove the simulation outcomes.
+*   **📚 Interactive Documentation Center**: Built-in 9-tab reference manual explaining Excel data specifications, XGBoost parameters, TimeSeriesSplit CV, cyclical feature math, TreeSHAP equations, and troubleshooting.
 *   **🎨 Professional Scientific Interface**: A responsive, high-contrast workspace inspired by the Roland Digital visual system, with accessible labels and clear training feedback.
 *   **📁 Structured Run Logging**: Automatically serializes accuracy metrics ($R^2$, RMSE), model parameters, and top SHAP drivers into JSON files for future AI analysis.
 
@@ -87,6 +88,7 @@ Compare validation R² and RMSE rather than judging a model by training fit alon
 ├── modules/                   # 🧠 Core Backend Architecture
 │   ├── __init__.py            # 📦 Module Package Setup
 │   ├── data_loader.py         # 🗄️ Excel Ingestion & IQR Outlier Checks
+│   ├── docs_view.py           # 📚 Interactive Documentation & Reference Manual
 │   ├── feature_engineering.py  # 🧬 Sine/Cosine Cyclicals & Rolling Lags
 │   ├── model.py               # 🌲 XGBoost Trainer Wrapper
 │   ├── explainer.py           # 🔮 SHAP TreeExplainer Logic

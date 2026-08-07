@@ -1,9 +1,9 @@
 """
 visualizer.py — Plotly chart builders for the Scenario Simulator.
 
-Design System: Roland Digital-inspired scientific workspace.
-Colors: warm paper (#f2efe7), ink (#171714), electric blue (#1648d8).
-Font: Manrope for UI, DM Mono for data labels.
+Design System: Claude Academy Design System
+Colors: warm paper (#F9F8F3), card (#FFFFFF), primary accent (#1648d8).
+Font: Inter for UI, Space Grotesk / JetBrains Mono for data labels.
 """
 from __future__ import annotations
 
@@ -12,20 +12,20 @@ import pandas as pd
 import plotly.graph_objects as go
 
 # ---------------------------------------------------------------------------
-# Design tokens (matched to Stitch design system — DARK MODE)
+# Design tokens (Claude Academy Design System)
 # ---------------------------------------------------------------------------
-_SURFACE = "#f2efe7"
-_CARD_BG = "#f7f4ed"
-_BORDER = "#c9c5ba"
-_GRID = "#ddd8cc"
-_TEXT_PRIMARY = "#171714"
-_TEXT_SECONDARY = "#4f4e48"
-_TEXT_MUTED = "#858278"
+_SURFACE = "#F9F8F3"
+_CARD_BG = "#FFFFFF"
+_BORDER = "#E6E2D8"
+_GRID = "#EAE6DD"
+_TEXT_PRIMARY = "#191919"
+_TEXT_SECONDARY = "#555555"
+_TEXT_MUTED = "#707070"
 
-_HIST_COLOR = "#171714"      # Ink — historical actual
-_PRED_COLOR = "#1648d8"      # Electric blue — scenario predicted
-_SECONDARY = "#1648d8"       # Electric blue — feature impact bars
-_ERROR = "#ffb4ab"           # light red — negative SHAP bars
+_HIST_COLOR = "#191919"      # Deep charcoal — historical actual
+_PRED_COLOR = "#1648d8"      # Primary blue accent — scenario predicted
+_SECONDARY = "#1648d8"       # Primary blue accent — feature impact bars
+_ERROR = "#ef4444"           # Red status indicator
 
 
 def _base_layout(**kwargs) -> dict:
@@ -34,7 +34,7 @@ def _base_layout(**kwargs) -> dict:
         plot_bgcolor=_CARD_BG,
         font=dict(
             color=_TEXT_SECONDARY,
-            family="Manrope, Arial, sans-serif",
+            family="Inter, system-ui, -apple-system, sans-serif",
             size=14,
         ),
         margin=dict(l=58, r=24, t=46, b=46),
@@ -43,20 +43,20 @@ def _base_layout(**kwargs) -> dict:
             showline=True,
             linecolor=_BORDER,
             zeroline=False,
-            tickfont=dict(family="DM Mono, monospace", size=10, color=_TEXT_MUTED),
+            tickfont=dict(family="Space Grotesk, JetBrains Mono, monospace", size=11, color=_TEXT_MUTED),
         ),
         yaxis=dict(
             gridcolor=_GRID,
             showline=True,
             linecolor=_BORDER,
             zeroline=False,
-            tickfont=dict(family="DM Mono, monospace", size=10, color=_TEXT_MUTED),
+            tickfont=dict(family="Space Grotesk, JetBrains Mono, monospace", size=11, color=_TEXT_MUTED),
         ),
         legend=dict(
             bgcolor="rgba(255,255,255,0)",
             bordercolor=_BORDER,
             borderwidth=0,
-            font=dict(family="DM Mono, monospace", size=10, color=_TEXT_SECONDARY),
+            font=dict(family="Inter, sans-serif", size=12, color=_TEXT_SECONDARY),
             orientation="h",
             yanchor="bottom",
             y=1.02,
@@ -65,7 +65,7 @@ def _base_layout(**kwargs) -> dict:
         ),
         hoverlabel=dict(
             bgcolor=_CARD_BG,
-            font_family="DM Mono, monospace",
+            font_family="Space Grotesk, JetBrains Mono, monospace",
             font_size=13,
             bordercolor=_BORDER,
         ),
@@ -168,7 +168,7 @@ def plot_shap_bar(
     )
     fig.update_layout(**layout)
     fig.update_yaxes(
-        tickfont=dict(family="DM Mono, monospace", size=10, color=_TEXT_SECONDARY),
+        tickfont=dict(family="Space Grotesk, JetBrains Mono, monospace", size=10, color=_TEXT_SECONDARY),
     )
     fig.update_xaxes(
         title_text="Mean |SHAP Value|",
