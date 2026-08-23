@@ -2256,22 +2256,52 @@ if uploaded is None:
         </div>
 
         <div class="claude-card" style="margin-top: 24px;">
-            <h4 style="font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text-primary);">Engine Processing Pipeline</h4>
-            <div class="claude-list-item">
-                <span class="claude-check-icon complete" role="img" aria-label="Completed">✔</span>
-                <span class="claude-list-title">01 · Workbook Sheet Validation & Auto Target Column Detection</span>
+            <div style="max-width: 880px; margin-bottom: 24px;">
+                <span class="claude-badge">Why this platform exists</span>
+                <h4 style="font-family: 'Newsreader', Georgia, serif; font-size: 32px; font-weight: 600; line-height: 1.1; margin: 14px 0 10px; color: var(--text-primary);">The forecasting problem we solve</h4>
+                <p style="font-family: 'Inter', sans-serif; font-size: 16px; color: var(--text-secondary); line-height: 1.65; margin: 0;">
+                    Organizations collect years of measurements, but turning that history into a trustworthy answer to
+                    <strong>“what is likely to happen under this future scenario?”</strong> is difficult. The data must be cleaned,
+                    time order must be protected, useful memory and seasonal signals must be created, models must be compared,
+                    and every result must be explained. A technically valid forecast is not enough—it also has to be understandable
+                    and usable by the people making the decision.
+                </p>
             </div>
-            <div class="claude-list-item">
-                <span class="claude-check-icon complete" role="img" aria-label="Completed">✔</span>
-                <span class="claude-list-title">02 · Sentinel Value Cleaning & Statistical Outlier Auditing</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                <div style="padding: 20px; background: var(--bg-card-alt); border: 1px solid var(--border-light);">
+                    <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); margin: 0 0 10px;">The traditional way</p>
+                    <h5 style="font-family: 'Inter', sans-serif; font-size: 18px; margin: 0 0 10px; color: var(--text-primary);">Many manual steps, often across several tools</h5>
+                    <p style="font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                        Analysts commonly prepare data in spreadsheets, choose and code a statistical or machine-learning model,
+                        design time-aware validation, tune parameters, build charts, and then create a separate explanation for stakeholders.
+                        Each handoff adds time and creates opportunities for inconsistent assumptions or accidental future-data leakage.
+                    </p>
+                </div>
+                <div style="padding: 20px; background: var(--bg-card-alt); border: 1px solid var(--border-light);">
+                    <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); margin: 0 0 10px;">MATLAB and other platforms</p>
+                    <h5 style="font-family: 'Inter', sans-serif; font-size: 18px; margin: 0 0 10px; color: var(--text-primary);">Powerful, but specialist setup is often required</h5>
+                    <p style="font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                        MATLAB, Python notebooks, R, and dedicated forecasting packages can produce excellent results. However, teams may
+                        need programming expertise, appropriate licenses or toolboxes, model-specific configuration, and custom work to connect
+                        cleaning, scenario forecasting, validation, explainability, visualization, and export into one repeatable workflow.
+                    </p>
+                </div>
+                <div style="padding: 20px; background: var(--primary-light); border: 1px solid var(--primary-border);">
+                    <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); margin: 0 0 10px;">Our approach</p>
+                    <h5 style="font-family: 'Inter', sans-serif; font-size: 18px; margin: 0 0 10px; color: var(--text-primary);">One guided workflow from Excel to an explained scenario</h5>
+                    <p style="font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                        Upload one structured workbook. The platform validates the sheets, identifies the forecast target, reviews data quality,
+                        builds time and memory features, evaluates XGBoost with forward-only cross-validation, predicts every scenario, and shows
+                        which factors influenced the result. The same process can be repeated without rebuilding an analysis from scratch.
+                    </p>
+                </div>
             </div>
-            <div class="claude-list-item">
-                <span class="claude-check-icon complete" role="img" aria-label="Completed">✔</span>
-                <span class="claude-list-title">03 · Forward-Only TimeSeriesSplit Cross Validation</span>
-            </div>
-            <div class="claude-list-item">
-                <span class="claude-check-icon pending" role="img" aria-label="Not started">○</span>
-                <span class="claude-list-title">04 · Interactive Plotly Scenario Projections & TreeSHAP Drivers</span>
+            <div style="margin-top: 18px; padding: 16px 18px; border-left: 3px solid var(--primary); background: var(--bg-card);">
+                <p style="font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; color: var(--text-secondary); margin: 0;">
+                    <strong style="color: var(--text-primary);">Where this is better:</strong> speed, accessibility, consistency, explainability,
+                    and scenario comparison for structured tabular time-series data. Specialist tools such as MATLAB remain the better choice when
+                    a project requires custom physical models, Simulink integration, advanced signal processing, or a fully bespoke research method.
+                </p>
             </div>
         </div>
         """,
